@@ -153,8 +153,8 @@ void ShowMeshesMode::draw(glm::uvec2 const &drawable_size) {
 
 void ShowMeshesMode::select_prev_mesh() {
 	auto f = buffer.meshes.find(current_mesh_name);
-	if (f != buffer.meshes.end()) --f;
-	if (f == buffer.meshes.end()) f = buffer.meshes.begin();
+	if (f == buffer.meshes.end()) f = buffer.meshes.begin(); // not found
+	if (f != buffer.meshes.begin()) --f;
 
 	if (f != buffer.meshes.end()) {
 		current_mesh_name = f->first;
