@@ -8,8 +8,8 @@
 
 //used for lookup later:
 Mesh const *mesh_window = nullptr;
-Mesh const *mesh_player = nullptr;
 Mesh const *mesh_letter = nullptr;
+Mesh const *mesh_player = nullptr;
 
 //names of mesh-to-collider-mesh:
 std::unordered_map< Mesh const *, Mesh const * > mesh_to_collider;
@@ -29,7 +29,8 @@ Load< MeshBuffer > roll_meshes(LoadTagDefault, []() -> MeshBuffer * {
 
   //key objects:
   mesh_window = &ret->lookup("window");
-  mesh_player = &ret->lookup("Sphere");
+  mesh_letter = &ret->lookup("letter");
+  mesh_player = &ret->lookup("player");
   
   mesh_to_collider.insert(std::make_pair(&ret->lookup("obstacles"), &ret->lookup("obstacles")));
   mesh_to_collider.insert(std::make_pair(&ret->lookup("window"), &ret->lookup("window")));
@@ -72,6 +73,8 @@ RollLevel::RollLevel(std::string const &scene_file) {
       windows.emplace_back(transform);
       auto f = mesh_to_collider.find(mesh);
       mesh_colliders.emplace_back(transform, *f->second, *roll_meshes);
+    } else if (mesh == mesh_letter) {
+      
     } else {
       auto f = mesh_to_collider.find(mesh);
       assert (f != mesh_to_collider.end());

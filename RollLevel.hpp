@@ -60,11 +60,15 @@ struct RollLevel : Scene {
   };
 
   //Additional information for things in the level:
+  Scene::Camera *camera = nullptr;
   std::vector< MeshCollider > mesh_colliders = {};
   std::vector< Window > windows = {};
-  std::vector< Letter > letters = {};
+  Letter *letter = nullptr;
   Player player;
 
-  Scene::Camera *camera = nullptr;
+  // other game states:
+  bool carrying_letter = false;
+  int delivery_count = 0;
+  
 };
 
