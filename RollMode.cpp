@@ -187,27 +187,18 @@ void RollMode::update(float elapsed) {
 
   { //camera update:
     
-    
-    /*
-    level.camera->transform->rotation =
-      glm::angleAxis( level.player.view_azimuth, glm::vec3(0.0f, 0.0f, 1.0f) )
-      * glm::angleAxis(0.3f * 3.1415926f, glm::vec3(1.0f, 0.0f, 0.0f) )
-    ;
-    glm::vec3 in = level.camera->transform->rotation * glm::vec3(0.0f, 0.0f, -1.0f);
-    level.camera->transform->position = level.player.transform->position - 20.0f * in;
-    */
-
-    // float azimuth = level.player.view_azimuth;
-    // float elevation = level.player.elevation;
-    //
     glm::quat plr_rotation = level.player.transform->rotation;
     glm::vec3 plr_position = level.player.transform->position;
 
+    glm::quat target_rotation = plr_rotation * glm::angleAxis(0.35f * 3.1415926525f, glm::vec3(1.0f, 0.0f, 0.0f));
     glm::vec3 target_position = plr_position + 
-      glm::mat3_cast(plr_rotation) * glm::vec3(0.0f, 0.0f, 20.0f);
+      glm::mat3_cast(plr_rotation) * glm::vec3(0.0f, -16.0f, 8.0f);
+
+    glm::quat &cam_rotation = level.camera->transform->rotation;
+    glm::vec3 &cam_position = level.camera->transform->position;
     
-    level.camera->transform->rotation = plr_rotation;
-    level.camera->transform->position = target_position;
+    cam_rotation = glm::slerp(cam_rotation, target_rotation, 0.8f * elapsed);
+    cam_position = glm::mix(cam_position, target_position, elapsed);
   }
 }
 
@@ -262,5 +253,17 @@ void RollMode::draw(glm::uvec2 const &drawable_size) {
 
 void RollMode::restart() {
   level = start;
+
   won = false;
+
+  glm::quat plr_rotation = level.player.transform->rotation;
+  glm::vec3 plr_position = level.player.transform->position;
+
+  glm::quat target_rotation = plr_rotation * glm::angleAxis(0.35f * 3.1415926525f, glm::vec3(1.0f, 0.0f, 0.0f));
+  glm::vec3 target_position = plr_position + 
+    glm::mat3_cast(plr_rotation) * glm::vec3(0.0f, -16.0f, 8.0f);
+
+  level.camera->transform->rotation = target_rotation;
+  level.camera->transform->position = target_position;
+  
 }
