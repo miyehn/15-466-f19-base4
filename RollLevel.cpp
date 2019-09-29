@@ -64,10 +64,10 @@ RollLevel::RollLevel(std::string const &scene_file) {
     pipeline.start = mesh->start;
     pipeline.count = mesh->count;
     pipeline.set_uniforms = [&pipeline, custom_col](){
-    
-      glm::vec4 c = custom_col ? *custom_col : glm::vec4(1, 0, 1, 1);
       GLuint loc = glGetUniformLocation(pipeline.program, "CUSTOM_COL");
       assert(loc != -1U);
+      assert (custom_col);
+      glm::vec4 c = *custom_col;
       glUniform4f(loc, c.x, c.y, c.z, c.w);
     };
 
@@ -78,7 +78,7 @@ RollLevel::RollLevel(std::string const &scene_file) {
       }
       player.transform = transform;
     } else if (mesh == mesh_window) {
-      windows.emplace_back(transform);
+      windows.emplace_back(transform, custom_col);
       auto f = mesh_to_collider.find(mesh);
       mesh_colliders.emplace_back(transform, *f->second, *roll_meshes);
     } else if (mesh == mesh_letter) {
@@ -113,10 +113,22 @@ RollLevel::RollLevel(std::string const &scene_file) {
 }
 
 void RollLevel::generate_letter() {
-  letter.transform->position = player.transform->position;
+  // set previous dest color to default
+  if (letter.destination) {
+    delete letter.destination->custom_col;
+    letter.destination->custom_col = new glm::vec4(1, 0, 0, 1);
+  }
+  // generate new dest
+  letter.destination = &windows[0];
+  // set new dest color to custom
+  if (letter.destination) {
+    delete letter.destination->custom_col;
+    letter.destination->custom_col = new glm::vec4(0.2, 0.8, 0.8, 1);
+  }
   if (letter.custom_col) delete (letter.custom_col);
-  letter.custom_col = new glm::vec4(0.5, 0.8, 0.8, 1);
-  letter.destination = windows[0].transform;
+  letter.custom_col = new glm::vec4(0.2, 0.8, 0.8, 1);
+
+  letter.transform->position = player.transform->position;
 }
 
 void RollLevel::Letter::update_location(bool carrying) {

@@ -34,18 +34,18 @@ struct RollLevel : Scene {
   };
 
   struct Window {
-    Window(Scene::Transform *transform_) : transform(transform_) { };
+    Window(Scene::Transform *transform_, glm::vec4* col_ptr) 
+      : transform(transform_), custom_col(col_ptr) { };
     Scene::Transform *transform;
     bool isActive = false;
-    glm::vec4 default_col = glm::vec4(0.92f, 1.0f, 0.5f, 1.0f);
-    glm::vec4 col = default_col;
+    glm::vec4 *custom_col;
   };
   
   struct Letter {
     void update_location(bool carrying);
     Scene::Transform *transform = nullptr;
     glm::vec4 *custom_col = nullptr;
-    Scene::Transform *destination = nullptr;
+    Window *destination = nullptr;
   };
 
   //Sphere being rolled tracked using this structure:
