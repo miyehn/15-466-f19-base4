@@ -54,6 +54,7 @@ struct Scene {
 		//a 'Drawable' attaches attribute data to a transform:
 		Drawable(Transform *transform_) : transform(transform_) { assert(transform); }
 		Transform * transform;
+    glm::vec4 *custom_col = new glm::vec4(1, 0, 1, 1);
 
 		//Contains all the data needed to run the OpenGL pipeline:
 		struct Pipeline {

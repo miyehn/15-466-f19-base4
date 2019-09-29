@@ -55,6 +55,7 @@ RollLevel::RollLevel(std::string const &scene_file) {
   
     drawables.emplace_back(transform);
     Drawable::Pipeline &pipeline = drawables.back().pipeline;
+    glm::vec4 *custom_col = drawables.back().custom_col;
     
     //set up drawable to draw mesh from buffer:
     pipeline = lit_color_texture_program_pipeline;
@@ -62,8 +63,9 @@ RollLevel::RollLevel(std::string const &scene_file) {
     pipeline.type = mesh->type;
     pipeline.start = mesh->start;
     pipeline.count = mesh->count;
-    pipeline.set_uniforms = [&pipeline, mesh](){
-      glm::vec4 c = mesh->custom_col;
+    pipeline.set_uniforms = [&pipeline, custom_col](){
+    
+      glm::vec4 c = custom_col ? *custom_col : glm::vec4(1, 0, 1, 1);
       GLuint loc = glGetUniformLocation(pipeline.program, "CUSTOM_COL");
       assert(loc != -1U);
       glUniform4f(loc, c.x, c.y, c.z, c.w);
@@ -80,7 +82,8 @@ RollLevel::RollLevel(std::string const &scene_file) {
       auto f = mesh_to_collider.find(mesh);
       mesh_colliders.emplace_back(transform, *f->second, *roll_meshes);
     } else if (mesh == mesh_letter) {
-      
+      letter.transform = transform;
+      letter.custom_col = custom_col;
     } else {
       auto f = mesh_to_collider.find(mesh);
       assert (f != mesh_to_collider.end());
@@ -104,4 +107,18 @@ RollLevel::RollLevel(std::string const &scene_file) {
 
   camera->fovy = 60.0f / 180.0f * 3.1415926f;
   camera->near = 0.05f;
+
+  generate_letter();
+
+}
+
+void RollLevel::generate_letter() {
+  letter.transform->position = player.transform->position;
+  if (letter.custom_col) delete (letter.custom_col);
+  letter.custom_col = new glm::vec4(0.5, 0.8, 0.8, 1);
+  letter.destination = windows[0].transform;
+}
+
+void RollLevel::Letter::update_location(bool carrying) {
+
 }

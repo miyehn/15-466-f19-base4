@@ -42,9 +42,10 @@ struct RollLevel : Scene {
   };
   
   struct Letter {
-    Letter(Scene::Transform *transform_, glm::vec4 col_) : transform(transform_), col(col_) {};
-    Scene::Transform *transform;
-    glm::vec4 col;
+    void update_location(bool carrying);
+    Scene::Transform *transform = nullptr;
+    glm::vec4 *custom_col = nullptr;
+    Scene::Transform *destination = nullptr;
   };
 
   //Sphere being rolled tracked using this structure:
@@ -59,11 +60,13 @@ struct RollLevel : Scene {
     float elevation_acc = 0.0f;
   };
 
+  void generate_letter();
+
   //Additional information for things in the level:
   Scene::Camera *camera = nullptr;
   std::vector< MeshCollider > mesh_colliders = {};
   std::vector< Window > windows = {};
-  Letter *letter = nullptr;
+  Letter letter;
   Player player;
 
   // other game states:
