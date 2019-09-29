@@ -27,11 +27,11 @@ Load< MeshBuffer > roll_meshes(LoadTagDefault, []() -> MeshBuffer * {
 	roll_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 
 	//key objects:
-	mesh_Goal = &ret->lookup("goal");
+	mesh_Goal = &ret->lookup("window");
 	mesh_Sphere = &ret->lookup("Sphere");
 	
   mesh_to_collider.insert(std::make_pair(&ret->lookup("obstacles"), &ret->lookup("obstacles")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("goal"), &ret->lookup("goal")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("window"), &ret->lookup("window")));
 
 	return ret;
 });

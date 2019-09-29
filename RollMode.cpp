@@ -27,16 +27,6 @@ RollMode::~RollMode() {
 }
 
 bool RollMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
-  /*
-  if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_SPACE) {
-    DEBUG_fly = !DEBUG_fly;
-    return true;
-  }
-  if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_BACKSPACE) {
-    restart();
-    return true;
-  }
-  */
 
   if (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) {
     if (evt.key.keysym.scancode == SDL_SCANCODE_A) {
