@@ -49,7 +49,7 @@ struct RollLevel : Scene {
 		glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
 
 		float view_azimuth = 0.0f;
-		float elevation = 45.0f / 180.0f * 3.1415926f;
+		float elevation = 0.0f;
 
     float view_azimuth_acc = 0.0f;
     float elevation_acc = 0.0f;

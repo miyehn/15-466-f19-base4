@@ -27,6 +27,7 @@ RollMode::~RollMode() {
 }
 
 bool RollMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
+  /*
   if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_SPACE) {
     DEBUG_fly = !DEBUG_fly;
     return true;
@@ -35,7 +36,7 @@ bool RollMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
     restart();
     return true;
   }
-
+  */
 
   if (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) {
     if (evt.key.keysym.scancode == SDL_SCANCODE_A) {
@@ -186,29 +187,27 @@ void RollMode::update(float elapsed) {
 
   { //camera update:
     
+    
+    /*
     level.camera->transform->rotation =
       glm::angleAxis( level.player.view_azimuth, glm::vec3(0.0f, 0.0f, 1.0f) )
       * glm::angleAxis(0.3f * 3.1415926f, glm::vec3(1.0f, 0.0f, 0.0f) )
     ;
     glm::vec3 in = level.camera->transform->rotation * glm::vec3(0.0f, 0.0f, -1.0f);
     level.camera->transform->position = level.player.transform->position - 20.0f * in;
+    */
 
-    /*
     // float azimuth = level.player.view_azimuth;
     // float elevation = level.player.elevation;
     //
-    std::cout << "ok" << std::endl;
     glm::quat plr_rotation = level.player.transform->rotation;
     glm::vec3 plr_position = level.player.transform->position;
 
     glm::vec3 target_position = plr_position + 
-      glm::mat3_cast(plr_rotation) * glm::vec3(0.0f, -20.0f, -10.0f);
+      glm::mat3_cast(plr_rotation) * glm::vec3(0.0f, 0.0f, 20.0f);
     
-    // glm::quat &cam_rotation = level.camera->transform->rotation;
-    glm::vec3 &cam_position = level.camera->transform->position;
-
-    cam_position = target_position;
-    */
+    level.camera->transform->rotation = plr_rotation;
+    level.camera->transform->position = target_position;
   }
 }
 
