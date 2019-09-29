@@ -46,11 +46,13 @@ struct RollLevel : Scene {
 	//Sphere being rolled tracked using this structure:
 	struct Player {
 		Scene::Transform *transform = nullptr;
-		glm::vec3 rotational_velocity = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
 
 		float view_azimuth = 0.0f;
-		float view_elevation = 45.0f / 180.0f * 3.1415926f;
+		float elevation = 45.0f / 180.0f * 3.1415926f;
+
+    float view_azimuth_acc = 0.0f;
+    float elevation_acc = 0.0f;
 	};
 
 	//Additional information for things in the level:

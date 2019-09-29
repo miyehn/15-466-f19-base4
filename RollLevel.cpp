@@ -17,23 +17,21 @@ GLuint roll_meshes_for_lit_color_texture_program = 0;
 
 //Load the meshes used in Sphere Roll levels:
 Load< MeshBuffer > roll_meshes(LoadTagDefault, []() -> MeshBuffer * {
-	MeshBuffer *ret = new MeshBuffer(data_path("roll-parts.pnct"));
+	MeshBuffer *ret = new MeshBuffer(data_path("test_scene.pnct"));
+
+  for (auto p : ret->meshes) {
+    std::cout << p.first << std::endl;
+  }
 
 	//Build vertex array object for the program we're using to shade these meshes:
 	roll_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 
 	//key objects:
-	mesh_Goal = &ret->lookup("Goal");
+	mesh_Goal = &ret->lookup("goal");
 	mesh_Sphere = &ret->lookup("Sphere");
 	
-	//these meshes collide as (simpler) boxes:
-	mesh_to_collider.insert(std::make_pair(&ret->lookup("Block.Dark"), &ret->lookup("Block.Simple")));
-	mesh_to_collider.insert(std::make_pair(&ret->lookup("Block.Light"), &ret->lookup("Block.Simple")));
-
-	//these meshes collide as themselves:
-	mesh_to_collider.insert(std::make_pair(&ret->lookup("Round.Quarter"), &ret->lookup("Round.Quarter")));
-	mesh_to_collider.insert(std::make_pair(&ret->lookup("Round.Corner"), &ret->lookup("Round.Corner")));
-	mesh_to_collider.insert(std::make_pair(&ret->lookup("Round.Corner.Outer"), &ret->lookup("Round.Corner.Outer")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("obstacles"), &ret->lookup("obstacles")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("goal"), &ret->lookup("goal")));
 
 	return ret;
 });
@@ -41,9 +39,7 @@ Load< MeshBuffer > roll_meshes(LoadTagDefault, []() -> MeshBuffer * {
 //Load sphere roll levels:
 Load< std::list< RollLevel > > roll_levels(LoadTagLate, []() -> std::list< RollLevel > * {
 	std::list< RollLevel > *ret = new std::list< RollLevel >();
-	ret->emplace_back(data_path("roll-level-1.scene"));
-	ret->emplace_back(data_path("roll-level-2.scene"));
-	ret->emplace_back(data_path("roll-level-3.scene"));
+	ret->emplace_back(data_path("test_scene.scene"));
 	return ret;
 });
 
@@ -76,6 +72,8 @@ RollLevel::RollLevel(std::string const &scene_file) {
 			player.transform = transform;
 		} else if (mesh == mesh_Goal) {
 			goals.emplace_back(transform);
+			auto f = mesh_to_collider.find(mesh);
+			mesh_colliders.emplace_back(transform, *f->second, *roll_meshes);
 		} else {
 			auto f = mesh_to_collider.find(mesh);
 			if (f != mesh_to_collider.end()) {

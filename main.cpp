@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 
 	//create window:
 	SDL_Window *window = SDL_CreateWindow(
-		"gp19 Sphere Roller", //TODO: remember to set a title for your game!
+		"glider", //TODO: remember to set a title for your game!
 		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		800, 540, //TODO: modify window size if you'd like
 		SDL_WINDOW_OPENGL
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
 				//handle input:
 				if (Mode::current && Mode::current->handle_event(evt, window_size)) {
 					// mode handled it; great
-				} else if (evt.type == SDL_QUIT) {
+				} else if (evt.type == SDL_QUIT || (evt.type==SDL_KEYDOWN && evt.key.keysym.sym==SDLK_ESCAPE)) {
 					Mode::set_current(nullptr);
 					break;
 				} else if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_PRINTSCREEN) {
