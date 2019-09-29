@@ -24,6 +24,7 @@ struct Mesh {
 	GLuint start = 0; //index of first vertex
 	GLuint count = 0; //count of vertices
 
+  glm::vec4 custom_col = glm::vec4(1, 0, 1, 1);
 	//Bounding box.
 	//useful for debug visualization and collision detection:
 	glm::vec3 min = glm::vec3( std::numeric_limits< float >::infinity());

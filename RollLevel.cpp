@@ -1,6 +1,7 @@
 #include "RollLevel.hpp"
 #include "data_path.hpp"
 #include "LitColorTextureProgram.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 #include <unordered_set>
 #include <unordered_map>
@@ -61,7 +62,12 @@ RollLevel::RollLevel(std::string const &scene_file) {
     pipeline.type = mesh->type;
     pipeline.start = mesh->start;
     pipeline.count = mesh->count;
-
+    pipeline.set_uniforms = [&pipeline, mesh](){
+      glm::vec4 c = mesh->custom_col;
+      GLuint loc = glGetUniformLocation(pipeline.program, "CUSTOM_COL");
+      assert(loc != -1U);
+      glUniform4f(loc, c.x, c.y, c.z, c.w);
+    };
 
     //associate level info with the drawable:
     if (mesh == mesh_player) {
