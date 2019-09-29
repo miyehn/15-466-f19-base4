@@ -12,54 +12,59 @@
 struct RollLevel;
 
 //List of all levels:
-extern Load< std::list< RollLevel > > roll_levels;
+extern Load< RollLevel > game_scene;
 
 struct RollLevel : Scene {
-	//Build from a scene:
-	//  note: will throw on loading failure, or if certain critical objects don't appear
-	RollLevel(std::string const &scene_file);
+  //Build from a scene:
+  //  note: will throw on loading failure, or if certain critical objects don't appear
+  RollLevel(std::string const &scene_file);
 
-	//Copy constructor:
-	//  used to copy a pristine, just-loaded level to a level that is being played
-	//    (and thus might be changed)
-	//  -- needs to be careful to fixup pointers.
-	RollLevel(RollLevel const &);
-	// copy constructor actually just uses this = operator:
-	RollLevel &operator=(RollLevel const &);
+  //Solid parts of level are tracked as MeshColliders:
+  struct MeshCollider {
+    MeshCollider(Scene::Transform *transform_, Mesh const &mesh_, MeshBuffer const &buffer_) : transform(transform_), mesh(&mesh_), buffer(&buffer_) { }
+    Scene::Transform *transform;
+    Mesh const *mesh;
+    MeshBuffer const *buffer;
+  };
 
-	
-	//Solid parts of level are tracked as MeshColliders:
-	struct MeshCollider {
-		MeshCollider(Scene::Transform *transform_, Mesh const &mesh_, MeshBuffer const &buffer_) : transform(transform_), mesh(&mesh_), buffer(&buffer_) { }
-		Scene::Transform *transform;
-		Mesh const *mesh;
-		MeshBuffer const *buffer;
-	};
+  std::vector<glm::vec4> letter_colors = {
+    glm::vec4(1.0f, 0.5f, 0.5f, 1.0f),
+    glm::vec4(0.5f, 1.0f, 0.5f, 1.0f),
+    glm::vec4(0.5f, 0.5f, 1.0f, 1.0f)
+  };
 
-	//Goal objects(s) tracked using this structure:
-	struct Goal {
-		Goal(Scene::Transform *transform_) : transform(transform_) { };
-		Scene::Transform *transform;
-		float spin_acc = 0.0f;
-	};
+  struct Window {
+    Window(Scene::Transform *transform_) : transform(transform_) { };
+    Scene::Transform *transform;
+    bool isActive = false;
+    glm::vec4 default_col = glm::vec4(0.92f, 1.0f, 0.5f, 1.0f);
+    glm::vec4 col = default_col;
+  };
+  
+  struct Letter {
+    Letter(Scene::Transform *transform_, glm::vec4 col_) : transform(transform_), col(col_) {};
+    Scene::Transform *transform;
+    glm::vec4 col;
+  };
 
-	//Sphere being rolled tracked using this structure:
-	struct Player {
-		Scene::Transform *transform = nullptr;
-		glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+  //Sphere being rolled tracked using this structure:
+  struct Player {
+    Scene::Transform *transform = nullptr;
+    glm::vec3 velocity = glm::vec3(0.0f, 0.0f, 0.0f);
 
-		float view_azimuth = 0.0f;
-		float elevation = 0.0f;
+    float view_azimuth = 0.0f;
+    float elevation = 0.0f;
 
     float view_azimuth_acc = 0.0f;
     float elevation_acc = 0.0f;
-	};
+  };
 
-	//Additional information for things in the level:
-	std::vector< MeshCollider > mesh_colliders;
-	std::vector< Goal > goals;
-	Player player;
+  //Additional information for things in the level:
+  std::vector< MeshCollider > mesh_colliders = {};
+  std::vector< Window > windows = {};
+  std::vector< Letter > letters = {};
+  Player player;
 
-	Scene::Camera *camera = nullptr;
+  Scene::Camera *camera = nullptr;
 };
 

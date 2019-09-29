@@ -15,11 +15,13 @@
 #include <algorithm>
 #include <iostream>
 
+extern Load< RollLevel > game_scene;
+
 Load< SpriteAtlas > trade_font_atlas(LoadTagDefault, []() -> SpriteAtlas const * {
   return new SpriteAtlas(data_path("trade-font"));
 });
 
-RollMode::RollMode(RollLevel const &level_) : start(level_), level(level_) {
+RollMode::RollMode(RollLevel level_) : level(level_)  {
   restart();
 }
 
@@ -168,12 +170,14 @@ void RollMode::update(float elapsed) {
     }
   }
 
+  /*
   //goal update:
-  for (auto &goal : level.goals) {
+  for (auto &window : level.windows) {
     if (glm::length(goal.transform->make_local_to_world()[3] - level.player.transform->make_local_to_world()[3]) < 1.0f) {
       won = true;
     }
   }
+  */
 
   { //camera update:
     
@@ -242,7 +246,7 @@ void RollMode::draw(glm::uvec2 const &drawable_size) {
 }
 
 void RollMode::restart() {
-  level = start;
+  // level = start;
 
   won = false;
 

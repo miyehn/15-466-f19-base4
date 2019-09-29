@@ -7,7 +7,7 @@
 #include <memory>
 
 struct RollMode : Mode {
-	RollMode(RollLevel const &level);
+	RollMode(RollLevel level_);
 	virtual ~RollMode();
 
 	virtual bool handle_event(SDL_Event const &, glm::uvec2 const &window_size) override;
@@ -15,7 +15,7 @@ struct RollMode : Mode {
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 
 	//The (starting shape of the) level:
-	RollLevel const &start;
+	// RollLevel const &start;
 
 	//The (active, being-played) level:
 	void restart();
