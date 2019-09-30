@@ -18,10 +18,19 @@ vec4 over(vec4 elem, vec4 canvas) {
   return vec4(cr, cg, cb, ca);
 }
 
+bool is_light(vec4 col) {
+  return col.a==1 && (col.r==1 || col.g==1 || col.b==1);
+}
+
 void main() {
 	vec3 n = normalize(normal);
-	vec3 l = normalize(vec3(0.1, 0.1, 1.0));
+	vec3 l = normalize(vec3(0.1, 0.25, 1.0));
 	vec4 albedo = texture(TEX, texCoord) * color;
+
+  if (is_light(albedo)) {
+    fragColor = albedo;
+    return;
+  }
 
 	// simple hemispherical lighting model:
 	vec3 light = mix(vec3(0.0,0.0,0.1), vec3(1.0,1.0,0.95), dot(n,l)*0.5+0.5);

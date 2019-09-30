@@ -189,7 +189,7 @@ void RollMode::update(float elapsed) {
   }
 
   { //camera update:
-    
+
     glm::quat plr_rotation = level.player.transform->rotation;
     glm::vec3 plr_position = level.player.transform->position;
 
@@ -199,9 +199,91 @@ void RollMode::update(float elapsed) {
 
     glm::quat &cam_rotation = level.camera->transform->rotation;
     glm::vec3 &cam_position = level.camera->transform->position;
+
+    glm::vec3 &position = cam_position;
+    glm::vec3 velocity = (target_position - cam_position) * 2.8f;
+
+    //collide against level:
+    float remain = elapsed;
+    
+    for (int32_t iter = 0; iter < 10; ++iter) {
+      if (remain == 0.0f) break;
+
+      float sphere_radius = 3.0f; // don't allow camera to get to, say, 3 units from any obstacle
+      glm::vec3 sphere_sweep_from = position;
+      glm::vec3 sphere_sweep_to = position + velocity * remain;
+
+      glm::vec3 sphere_sweep_min = glm::min(sphere_sweep_from, sphere_sweep_to) - glm::vec3(sphere_radius);
+      glm::vec3 sphere_sweep_max = glm::max(sphere_sweep_from, sphere_sweep_to) + glm::vec3(sphere_radius);
+
+      bool collided = false;
+      float collision_t = 1.0f;
+      glm::vec3 collision_at = glm::vec3(0.0f);
+      glm::vec3 collision_out = glm::vec3(0.0f);
+      for (auto const &collider : level.mesh_colliders) {
+        glm::mat4x3 collider_to_world = collider.transform->make_local_to_world();
+
+        { //Early discard:
+          // check if AABB of collider overlaps AABB of swept sphere:
+
+          //(1) compute bounding box of collider in world space:
+          glm::vec3 local_center = 0.5f * (collider.mesh->max + collider.mesh->min);
+          glm::vec3 local_radius = 0.5f * (collider.mesh->max - collider.mesh->min);
+
+          glm::vec3 world_min = collider_to_world * glm::vec4(local_center, 1.0f)
+            - glm::abs(local_radius.x * collider_to_world[0])
+            - glm::abs(local_radius.y * collider_to_world[1])
+            - glm::abs(local_radius.z * collider_to_world[2]);
+          glm::vec3 world_max = collider_to_world * glm::vec4(local_center, 1.0f)
+            + glm::abs(local_radius.x * collider_to_world[0])
+            + glm::abs(local_radius.y * collider_to_world[1])
+            + glm::abs(local_radius.z * collider_to_world[2]);
+
+          //(2) check if bounding boxes overlap:
+          bool can_skip = !collide_AABB_vs_AABB(sphere_sweep_min, sphere_sweep_max, world_min, world_max);
+
+          if (can_skip) {
+            //AABBs do not overlap; skip detailed check:
+            continue;
+          }
+        }
+
+        //Full (all triangles) test:
+        assert(collider.mesh->type == GL_TRIANGLES); //only have code for TRIANGLES not other primitive types
+        for (GLuint v = 0; v + 2 < collider.mesh->count; v += 3) {
+          //get vertex positions from associated positions buffer:
+          //  (and transform to world space)
+          glm::vec3 a = collider_to_world * glm::vec4(collider.buffer->positions[collider.mesh->start+v+0], 1.0f);
+          glm::vec3 b = collider_to_world * glm::vec4(collider.buffer->positions[collider.mesh->start+v+1], 1.0f);
+          glm::vec3 c = collider_to_world * glm::vec4(collider.buffer->positions[collider.mesh->start+v+2], 1.0f);
+          //check triangle:
+          bool did_collide = collide_swept_sphere_vs_triangle(
+            sphere_sweep_from, sphere_sweep_to, sphere_radius,
+            a,b,c,
+            &collision_t, &collision_at, &collision_out);
+
+          if (did_collide) {
+            collided = true;
+          }
+
+        }
+      }
+
+      if (!collided) {
+        cam_position = sphere_sweep_to;
+        remain = 0.0f;
+        break;
+      } else {
+        position = glm::mix(sphere_sweep_from, sphere_sweep_to, collision_t);
+        float d = glm::dot(velocity, collision_out);
+        if (d < 0.0f) {
+          velocity -= (1.1f * d) * collision_out;
+        }
+        remain = (1.0f - collision_t) * remain;
+      }
+    }
     
     cam_rotation = glm::slerp(cam_rotation, target_rotation, 2.0f * elapsed);
-    cam_position = glm::mix(cam_position, target_position, 2.8f * elapsed);
   }
 }
 

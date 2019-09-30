@@ -140,7 +140,7 @@ void RollLevel::generate_letter() {
   assert(letter.destination && letter.destination->custom_col);
   *letter.destination->custom_col = glm::vec4(col.x, col.y, col.z, col.w);
   assert(letter.custom_col);
-  *letter.custom_col = glm::vec4(col.x, col.y, col.z, col.w);
+  *letter.custom_col = glm::vec4(col.x*0.99f, col.y*0.99f, col.z*0.99f, col.w);
 
   letter.transform->position = glm::vec3(
       (drand48()-0.5f) * 80.0f, 
