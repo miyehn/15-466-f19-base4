@@ -91,7 +91,7 @@ void ShowSceneMode::draw(glm::uvec2 const &drawable_size) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	scene.draw(scene_camera->make_projection() * scene_camera->transform->make_world_to_local());
+	scene.draw(drawable_size, scene_camera->make_projection() * scene_camera->transform->make_world_to_local());
 
 	{ //decorate with some lines:
 		DrawLines draw_lines(scene_camera->make_projection() * scene_camera->transform->make_world_to_local());

@@ -50,6 +50,30 @@ struct Scene {
 		// Transform() = default;
 	};
 
+  //---- stuff for post processing (bloom) ----
+
+  GLuint firstpass_fbo = 0;
+  GLuint colorBuffers[2];
+  GLuint depthBuffer = 0;
+  GLuint color_attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+
+  GLuint pingpong_fbo[2];
+  GLuint pingpongBuffers[2];
+
+  GLuint post_processing_program = 0;
+  std::vector<float> trivial_vector = {
+    -1, -1, 0,
+    -1, 1, 0,
+    1, 1, 0,
+    -1, -1, 0,
+    1, 1, 0,
+    1, -1, 0
+  };
+  GLuint trivial_vao = 0;
+  GLuint trivial_vbo = 0;
+
+  //--------
+
 	struct Drawable {
 		//a 'Drawable' attaches attribute data to a transform:
 		Drawable(Transform *transform_) : transform(transform_) { assert(transform); }
@@ -123,10 +147,10 @@ struct Scene {
 	std::list< Lamp > lamps;
 
 	//The "draw" function provides a convenient way to pass all the things in a scene to OpenGL:
-	void draw(Camera const &camera) const;
+	void draw(glm::uvec2 drawable_size, Camera const &camera) const;
 
 	//..sometimes, you want to draw with a custom projection matrix and/or light space:
-	void draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_light = glm::mat4x3(1.0f)) const;
+	void draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_light = glm::mat4x3(1.0f)) const;
 
 	//add transforms/objects/cameras from a scene file to this scene:
 	// the 'on_drawable' callback gives your code a chance to look up mesh data and make Drawables:

@@ -1,6 +1,7 @@
 #include "RollLevel.hpp"
 #include "data_path.hpp"
 #include "LitColorTextureProgram.hpp"
+#include "BloomProgram.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 #include <unordered_set>
@@ -45,9 +46,44 @@ Load< RollLevel > game_scene(LoadTagLate, []() -> RollLevel* {
   return ret;
 });
 
+Load< BloomProgram > bloom_program(LoadTagEarly, []() -> BloomProgram const * {
+  BloomProgram *ret = new BloomProgram();
+
+/*
+  //----- build the pipeline template -----
+  lit_color_texture_program_pipeline.program = ret->program;
+
+  lit_color_texture_program_pipeline.OBJECT_TO_CLIP_mat4 = ret->OBJECT_TO_CLIP_mat4;
+  lit_color_texture_program_pipeline.OBJECT_TO_LIGHT_mat4x3 = ret->OBJECT_TO_LIGHT_mat4x3;
+  lit_color_texture_program_pipeline.NORMAL_TO_LIGHT_mat3 = ret->NORMAL_TO_LIGHT_mat3;
+
+  //make a 1-pixel white texture to bind by default:
+  GLuint tex;
+  glGenTextures(1, &tex);
+
+  glBindTexture(GL_TEXTURE_2D, tex);
+  std::vector< glm::u8vec4 > tex_data(1, glm::u8vec4(0xff));
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+
+  lit_color_texture_program_pipeline.textures[0].texture = tex;
+  lit_color_texture_program_pipeline.textures[0].target = GL_TEXTURE_2D;
+
+  */
+  return ret;
+});
+
 //-------- RollLevel ---------
 
 RollLevel::RollLevel(std::string const &scene_file) {
+
+  srand48(time(NULL));
+  post_processing_program = bloom_program->program;
 
   //Load scene (using Scene::load function), building proper associations as needed:
   load(scene_file, [this,&scene_file](Scene &, Transform *transform, std::string const &mesh_name){
@@ -115,7 +151,6 @@ RollLevel::RollLevel(std::string const &scene_file) {
   camera->fovy = 60.0f / 180.0f * 3.1415926f;
   camera->near = 0.05f;
 
-  srand48(time(NULL));
   generate_letter();
 
 }

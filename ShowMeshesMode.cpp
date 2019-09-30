@@ -120,7 +120,7 @@ void ShowMeshesMode::draw(glm::uvec2 const &drawable_size) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	scene.draw(*scene_camera);
+	scene.draw(drawable_size, *scene_camera);
 
 	{ //decorate with some lines:
 		DrawLines draw_lines(scene_camera->make_projection() * scene_camera->transform->make_world_to_local());

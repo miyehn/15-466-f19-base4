@@ -7,7 +7,8 @@ in vec4 color;
 in vec2 texCoord;
 in float depth;
 in float height;
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out vec4 brightColor;
 
 vec4 over(vec4 elem, vec4 canvas) {
   vec4 elem_ = vec4(elem.rgb * elem.a, elem.a);
@@ -23,6 +24,8 @@ bool is_light(vec4 col) {
 }
 
 void main() {
+  brightColor = vec4(0.3, 0.2, 0.2, 1);
+
 	vec3 n = normalize(normal);
 	vec3 l = normalize(vec3(0.1, 0.25, 1.0));
 	vec4 albedo = texture(TEX, texCoord) * color;

@@ -1,6 +1,5 @@
 #include "RollMode.hpp"
 #include "DrawLines.hpp"
-#include "LitColorTextureProgram.hpp"
 #include "Mesh.hpp"
 #include "Sprite.hpp"
 #include "DrawSprites.hpp"
@@ -277,7 +276,7 @@ void RollMode::update(float elapsed) {
         position = glm::mix(sphere_sweep_from, sphere_sweep_to, collision_t);
         float d = glm::dot(velocity, collision_out);
         if (d < 0.0f) {
-          velocity -= (1.1f * d) * collision_out;
+          velocity -= (1.01f * d) * collision_out;
         }
         remain = (1.0f - collision_t) * remain;
       }
@@ -296,7 +295,7 @@ void RollMode::draw(glm::uvec2 const &drawable_size) {
   glDepthFunc(GL_LEQUAL);
 
   level.camera->aspect = drawable_size.x / float(drawable_size.y);
-  level.draw(*level.camera);
+  level.draw(drawable_size, *level.camera);
 
   { //help text overlay:
     glDisable(GL_DEPTH_TEST);
