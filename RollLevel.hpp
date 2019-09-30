@@ -42,8 +42,9 @@ struct RollLevel : Scene {
   };
   
   struct Letter {
-    void update_location(bool carrying);
+    void update_transform(Scene::Transform *plr_t, bool carrying, float elapsed);
     Scene::Transform *transform = nullptr;
+    glm::quat default_rotation = glm::quat();
     glm::vec4 *custom_col = nullptr;
     Window *destination = nullptr;
   };

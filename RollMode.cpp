@@ -50,6 +50,9 @@ bool RollMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 }
 
 void RollMode::update(float elapsed) {
+
+  const RollLevel::MeshCollider *first_hit = nullptr;
+
   //NOTE: turn this on to fly the sphere instead of rolling it -- makes collision debugging easier
   { //player motion:
     //build a shove from controls:
@@ -91,6 +94,7 @@ void RollMode::update(float elapsed) {
 
     //collide against level:
     float remain = elapsed;
+    
     for (int32_t iter = 0; iter < 10; ++iter) {
       if (remain == 0.0f) break;
 
@@ -149,6 +153,7 @@ void RollMode::update(float elapsed) {
 
           if (did_collide) {
             collided = true;
+            if (!first_hit) first_hit = &collider;
           }
 
         }
@@ -170,14 +175,24 @@ void RollMode::update(float elapsed) {
     }
   }
 
-  /*
-  //goal update:
-  for (auto &window : level.windows) {
-    if (glm::length(goal.transform->make_local_to_world()[3] - level.player.transform->make_local_to_world()[3]) < 1.0f) {
-      won = true;
+  // update game state if hit destination
+  if (first_hit && first_hit->transform == level.letter.destination->transform) {
+    if (level.carrying_letter) {
+      level.carrying_letter = false;
+      level.delivery_count++;
+      level.generate_letter();
     }
   }
-  */
+  
+  // update letter location
+  level.letter.update_transform(level.player.transform, level.carrying_letter, elapsed);
+
+  // check if player hits letter
+  if (!level.carrying_letter && 
+      // ok I know I'm assuming they're both in world coordinates... In this case they are
+      glm::length(level.letter.transform->position - level.player.transform->position) < 1.5f) {
+    level.carrying_letter = true;
+  }
 
   { //camera update:
     
@@ -215,31 +230,13 @@ void RollMode::draw(glm::uvec2 const &drawable_size) {
     DrawSprites draw(*trade_font_atlas, glm::vec2(0,0), glm::vec2(320, 200), drawable_size, DrawSprites::AlignPixelPerfect);
 
     {
-      std::string help_text = "wasd:move, mouse:camera, bksp: reset";
+      std::string help_text = "letters delivered: " + std::to_string(level.delivery_count);
       glm::vec2 min, max;
       draw.get_text_extents(help_text, glm::vec2(0.0f, 0.0f), 1.0f, &min, &max);
       float x = std::round(160.0f - (0.5f * (max.x + min.x)));
       draw.draw_text(help_text, glm::vec2(x, 1.0f), 1.0f, glm::u8vec4(0x00,0x00,0x00,0xff));
       draw.draw_text(help_text, glm::vec2(x, 2.0f), 1.0f, glm::u8vec4(0xff,0xff,0xff,0xff));
     }
-
-    if (won) {
-      std::string text = "Finished!";
-      glm::vec2 min, max;
-      draw.get_text_extents(text, glm::vec2(0.0f, 0.0f), 2.0f, &min, &max);
-      float x = std::round(160.0f - (0.5f * (max.x + min.x)));
-      draw.draw_text(text, glm::vec2(x, 100.0f), 2.0f, glm::u8vec4(0x00,0x00,0x00,0xff));
-      draw.draw_text(text, glm::vec2(x, 101.0f), 2.0f, glm::u8vec4(0xff,0xff,0xff,0xff));
-    }
-    if (won) {
-      std::string text = "press enter for next";
-      glm::vec2 min, max;
-      draw.get_text_extents(text, glm::vec2(0.0f, 0.0f), 1.0f, &min, &max);
-      float x = std::round(160.0f - (0.5f * (max.x + min.x)));
-      draw.draw_text(text, glm::vec2(x, 91.0f), 1.0f, glm::u8vec4(0x00,0x00,0x00,0xff));
-      draw.draw_text(text, glm::vec2(x, 92.0f), 1.0f, glm::u8vec4(0xdd,0xdd,0xdd,0xff));
-    }
-
   }
 
   GL_ERRORS();
@@ -247,8 +244,6 @@ void RollMode::draw(glm::uvec2 const &drawable_size) {
 
 void RollMode::restart() {
   // level = start;
-
-  won = false;
 
   glm::quat plr_rotation = level.player.transform->rotation;
   glm::vec3 plr_position = level.player.transform->position;

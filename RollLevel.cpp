@@ -56,6 +56,7 @@ RollLevel::RollLevel(std::string const &scene_file) {
     drawables.emplace_back(transform);
     Drawable::Pipeline &pipeline = drawables.back().pipeline;
     glm::vec4 *custom_col = drawables.back().custom_col;
+    assert(custom_col);
     
     //set up drawable to draw mesh from buffer:
     pipeline = lit_color_texture_program_pipeline;
@@ -79,10 +80,12 @@ RollLevel::RollLevel(std::string const &scene_file) {
       player.transform = transform;
     } else if (mesh == mesh_window) {
       windows.emplace_back(transform, custom_col);
+      assert(windows.back().custom_col);
       auto f = mesh_to_collider.find(mesh);
       mesh_colliders.emplace_back(transform, *f->second, *roll_meshes);
     } else if (mesh == mesh_letter) {
       letter.transform = transform;
+      letter.default_rotation = transform->rotation;
       letter.custom_col = custom_col;
     } else {
       auto f = mesh_to_collider.find(mesh);
@@ -108,29 +111,47 @@ RollLevel::RollLevel(std::string const &scene_file) {
   camera->fovy = 60.0f / 180.0f * 3.1415926f;
   camera->near = 0.05f;
 
+  srand48(time(NULL));
   generate_letter();
 
 }
 
-void RollLevel::generate_letter() {
-  // set previous dest color to default
-  if (letter.destination) {
-    delete letter.destination->custom_col;
-    letter.destination->custom_col = new glm::vec4(1, 0, 0, 1);
-  }
-  // generate new dest
-  letter.destination = &windows[0];
-  // set new dest color to custom
-  if (letter.destination) {
-    delete letter.destination->custom_col;
-    letter.destination->custom_col = new glm::vec4(0.2, 0.8, 0.8, 1);
-  }
-  if (letter.custom_col) delete (letter.custom_col);
-  letter.custom_col = new glm::vec4(0.2, 0.8, 0.8, 1);
-
-  letter.transform->position = player.transform->position;
+float safe_drand() {
+  float r = drand48();
+  return r==1.0f ? 0.99999999f : r;
 }
 
-void RollLevel::Letter::update_location(bool carrying) {
+void RollLevel::generate_letter() {
 
+  // set previous dest color to default
+  if (letter.destination) {
+    assert(letter.destination->custom_col);
+    *letter.destination->custom_col = glm::vec4(1, 0, 1, 1);
+  }
+  // generate new dest
+  letter.destination = &windows[(int)(safe_drand() * windows.size())];
+  // get a random color from list
+  glm::vec4 col = letter_colors[(int)(safe_drand() * letter_colors.size())];
+  // set new dest color to custom
+  assert(letter.destination && letter.destination->custom_col);
+  *letter.destination->custom_col = glm::vec4(col.x, col.y, col.z, col.w);
+  assert(letter.custom_col);
+  *letter.custom_col = glm::vec4(col.x, col.y, col.z, col.w);
+
+  letter.transform->position = glm::vec3(
+      (drand48()-0.5f) * 80.0f, 
+      (drand48()-0.5f) * 80.0f, 180);
+}
+
+void RollLevel::Letter::update_transform(Scene::Transform *plr_t, bool carrying, float elapsed) {
+  if (carrying) {
+    assert(plr_t);
+    glm::vec3 offset = transform->rotation * glm::vec3(0, 0, 2);
+    transform->position = plr_t->position + offset;
+    transform->rotation = plr_t->rotation;
+  } else {
+    transform->rotation = default_rotation;
+    float &z = transform->position.z;
+    z += (140.0f - z) * elapsed * 0.25f;
+  }
 }
