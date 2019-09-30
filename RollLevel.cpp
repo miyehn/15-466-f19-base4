@@ -64,12 +64,16 @@ RollLevel::RollLevel(std::string const &scene_file) {
     pipeline.type = mesh->type;
     pipeline.start = mesh->start;
     pipeline.count = mesh->count;
-    pipeline.set_uniforms = [&pipeline, custom_col](){
+    pipeline.set_uniforms = [&pipeline, custom_col, transform](){
       GLuint loc = glGetUniformLocation(pipeline.program, "CUSTOM_COL");
       assert(loc != -1U);
       assert (custom_col);
       glm::vec4 c = *custom_col;
       glUniform4f(loc, c.x, c.y, c.z, c.w);
+      loc = glGetUniformLocation(pipeline.program, "ANCHOR_POS");
+      assert(loc != -1U);
+      glm::vec3 pos = transform->position;
+      glUniform3f(loc, pos.x, pos.y, pos.z);
     };
 
     //associate level info with the drawable:

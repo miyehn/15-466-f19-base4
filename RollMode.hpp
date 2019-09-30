@@ -14,9 +14,6 @@ struct RollMode : Mode {
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 
-	//The (starting shape of the) level:
-	// RollLevel const &start;
-
 	//The (active, being-played) level:
 	void restart();
 	RollLevel level;
@@ -28,9 +25,6 @@ struct RollMode : Mode {
 		bool left = false;
 		bool right = false;
 	} controls;
-
-	//fly around for collsion debug:
-	bool DEBUG_fly = false;
 
 	//some debug drawing done during update:
 	std::unique_ptr< DrawLines > DEBUG_draw_lines;

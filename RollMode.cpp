@@ -51,8 +51,6 @@ bool RollMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void RollMode::update(float elapsed) {
 
-  const RollLevel::MeshCollider *first_hit = nullptr;
-
   //NOTE: turn this on to fly the sphere instead of rolling it -- makes collision debugging easier
   { //player motion:
     //build a shove from controls:
@@ -81,7 +79,7 @@ void RollMode::update(float elapsed) {
     rotation = 
         glm::angleAxis( level.player.view_azimuth, glm::vec3(0.0f, 0.0f, 1.0f) )
       * glm::angleAxis( level.player.elevation, glm::vec3(1.0f, 0.0f, 0.0f) );
-    glm::vec3 shove = glm::mat3_cast(rotation) * glm::vec3(0.0f, 0.2f, 0.0f);
+    glm::vec3 shove = glm::mat3_cast(rotation) * glm::vec3(0.0f, 0.3f, 0.0f);
     shove *= 10.0f;
 
     //update player using shove:
@@ -89,8 +87,8 @@ void RollMode::update(float elapsed) {
     velocity = glm::mix(shove, velocity, std::pow(0.5f, elapsed / 0.25f));
 
     // decay acc toward 0
-    level.player.view_azimuth_acc -= level.player.view_azimuth_acc * elapsed * 1.5f;
-    level.player.elevation_acc -= level.player.elevation_acc * elapsed * 1.5f;
+    level.player.view_azimuth_acc -= level.player.view_azimuth_acc * elapsed * 2.0f;
+    level.player.elevation_acc -= level.player.elevation_acc * elapsed * 2.0f;
 
     //collide against level:
     float remain = elapsed;
@@ -153,7 +151,13 @@ void RollMode::update(float elapsed) {
 
           if (did_collide) {
             collided = true;
-            if (!first_hit) first_hit = &collider;
+            if (collider.transform == level.letter.destination->transform) {
+              if (level.carrying_letter) {
+                level.carrying_letter = false;
+                level.delivery_count++;
+                level.generate_letter();
+              }
+            }
           }
 
         }
@@ -168,19 +172,9 @@ void RollMode::update(float elapsed) {
         float d = glm::dot(velocity, collision_out);
         if (d < 0.0f) {
           velocity -= (1.1f * d) * collision_out;
-
         }
         remain = (1.0f - collision_t) * remain;
       }
-    }
-  }
-
-  // update game state if hit destination
-  if (first_hit && first_hit->transform == level.letter.destination->transform) {
-    if (level.carrying_letter) {
-      level.carrying_letter = false;
-      level.delivery_count++;
-      level.generate_letter();
     }
   }
   
@@ -206,8 +200,8 @@ void RollMode::update(float elapsed) {
     glm::quat &cam_rotation = level.camera->transform->rotation;
     glm::vec3 &cam_position = level.camera->transform->position;
     
-    cam_rotation = glm::slerp(cam_rotation, target_rotation, 0.8f * elapsed);
-    cam_position = glm::mix(cam_position, target_position, elapsed);
+    cam_rotation = glm::slerp(cam_rotation, target_rotation, 2.0f * elapsed);
+    cam_position = glm::mix(cam_position, target_position, 2.8f * elapsed);
   }
 }
 

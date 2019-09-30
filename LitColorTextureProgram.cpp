@@ -2,6 +2,8 @@
 
 #include "gl_compile_program.hpp"
 #include "gl_errors.hpp"
+#include <fstream>
+#include "data_path.hpp"
 
 Scene::Drawable::Pipeline lit_color_texture_program_pipeline;
 
@@ -37,48 +39,20 @@ Load< LitColorTextureProgram > lit_color_texture_program(LoadTagEarly, []() -> L
 
 LitColorTextureProgram::LitColorTextureProgram() {
 	//Compile vertex and fragment shaders using the convenient 'gl_compile_program' helper function:
+  std::ifstream vertex_fs(data_path("shader.vert"));
+  std::string vert_content( 
+      (std::istreambuf_iterator<char>(vertex_fs)), std::istreambuf_iterator<char>() );
+
+  std::ifstream fragment_fs(data_path("shader.frag"));
+  std::string frag_content( 
+      (std::istreambuf_iterator<char>(fragment_fs)), std::istreambuf_iterator<char>() );
+
 	program = gl_compile_program(
 		//vertex shader:
-		"#version 330\n"
-		"uniform mat4 OBJECT_TO_CLIP;\n"
-		"uniform mat4x3 OBJECT_TO_LIGHT;\n"
-		"uniform mat3 NORMAL_TO_LIGHT;\n"
-    "uniform vec4 CUSTOM_COL;\n"
-		"in vec4 Position;\n"
-		"in vec3 Normal;\n"
-		"in vec4 Color;\n"
-		"in vec2 TexCoord;\n"
-		"out vec3 position;\n"
-		"out vec3 normal;\n"
-		"out vec4 color;\n"
-		"out vec2 texCoord;\n"
-    "bool is_magenta(vec4 c) {\n"
-    " return(c.x==1 && c.y==0 && c.z==1 && c.w==1);\n"
-    "}\n"
-		"void main() {\n"
-		"	gl_Position = OBJECT_TO_CLIP * Position;\n"
-		"	position = OBJECT_TO_LIGHT * Position;\n"
-		"	normal = NORMAL_TO_LIGHT * Normal;\n"
-		"	color = is_magenta(CUSTOM_COL) ? Color : CUSTOM_COL;\n"
-		"	texCoord = TexCoord;\n"
-		"}\n"
+    vert_content
 	,
 		//fragment shader:
-		"#version 330\n"
-		"uniform sampler2D TEX;\n"
-		"in vec3 position;\n"
-		"in vec3 normal;\n"
-		"in vec4 color;\n"
-		"in vec2 texCoord;\n"
-		"out vec4 fragColor;\n"
-		"void main() {\n"
-		"	vec3 n = normalize(normal);\n"
-		"	vec3 l = normalize(vec3(0.1, 0.1, 1.0));\n"
-		"	vec4 albedo = texture(TEX, texCoord) * color;\n"
-		//simple hemispherical lighting model:
-		"	vec3 light = mix(vec3(0.0,0.0,0.1), vec3(1.0,1.0,0.95), dot(n,l)*0.5+0.5);\n"
-		"	fragColor = vec4(light*albedo.rgb, albedo.a);\n"
-		"}\n"
+    frag_content
 	);
 	//As you can see above, adjacent strings in C/C++ are concatenated.
 	// this is very useful for writing long shader programs inline.
