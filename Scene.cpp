@@ -159,34 +159,45 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
     glUseProgram(post_processing_program);
     glBindVertexArray(trivial_vao);
     glBindBuffer(GL_ARRAY_BUFFER, trivial_vbo);
-
-    /*
-    for (GLuint i = 0; i < 2; i++) {
-      glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
-      glTexImage2D(
-          GL_TEXTURE_2D, 0, GL_RGB16F, 800, 540, 0, GL_RGB, GL_FLOAT, NULL
-      );
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      // attach texture to framebuffer
-      glFramebufferTexture2D(
-          GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0
-      );
-    }  
-    */
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+
+    bool horizontal = true, first_iteration = true;
+    int amount = 6;
+    for (unsigned int i = 0; i < amount; i++) {
+      glBindFramebuffer(GL_FRAMEBUFFER, pingpong_fbo[horizontal]); 
+      // set horizontal uniform
+      GLuint loc = glGetUniformLocation(post_processing_program, "TASK");
+      assert (loc != -1U);
+      glUniform1i(loc, (int)horizontal);
+      // bind input texture
+      glBindTexture(
+          GL_TEXTURE_2D, first_iteration ? colorBuffers[0] : pingpongBuffers[!horizontal]
+      ); 
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      horizontal = !horizontal;
+      if (first_iteration)
+        first_iteration = false;
+    }
+
+    // ---- draw to screen
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // set uniform so the shader draws the last pass
+    GLuint loc = glGetUniformLocation(post_processing_program, "TASK");
+    assert (loc != -1U);
+    glUniform1i(loc, 2);
+    // bind texture(s)
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, pingpongBuffers[1]);
     glTexImage2D(
       GL_TEXTURE_2D, 0, GL_RGBA, drawable_size.x, drawable_size.y, 0, GL_RGBA, GL_FLOAT, NULL
     );
+    /*
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
     glDrawArrays(GL_TRIANGLES, 0, 6);
+
     GL_ERRORS();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -200,7 +211,7 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
 void Scene::load(std::string const &filename,
   std::function< void(Scene &, Transform *, std::string const &) > const &on_drawable) {
   
-  // generate framebuffer(s)
+  // ------ generate framebuffer for first pass
   glGenFramebuffers(1, &firstpass_fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, firstpass_fbo);
 
@@ -208,7 +219,9 @@ void Scene::load(std::string const &filename,
   for (GLuint i=0; i<2; i++) {
     glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
     glTexImage2D(
-      // here hardcoding texture as 2x window size.. does get actual drawable size in draw() tho
+      // here hardcoding texture as 2x window size.. 
+      // For screens that don't get 2x resolution, only a quarter of this texture would be used
+      // does get actual drawable size in draw() tho
       GL_TEXTURE_2D, 0, GL_RGBA, 1600, 1080, 0, GL_RGBA, GL_FLOAT, NULL    
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -218,20 +231,18 @@ void Scene::load(std::string const &filename,
     glFramebufferTexture2D(
       GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0+i, GL_TEXTURE_2D, colorBuffers[i], 0    
     );
-    if (i==0) {
-      // setup associated depth buffer
-      glGenRenderbuffers(1, &depthBuffer);
-      glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-      glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1600, 1080);
-      glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
-    }
   }
+  // setup associated depth buffer
+  glGenRenderbuffers(1, &depthBuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1600, 1080);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
   glDrawBuffers(2, color_attachments);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
-  // ------
+  // ------ set up 2nd pass pipeline
   glGenVertexArrays(1, &trivial_vao);
   glBindVertexArray(trivial_vao);
 
@@ -250,9 +261,23 @@ void Scene::load(std::string const &filename,
   glBindVertexArray(0);
   GL_ERRORS();
 
-  // ------
+  // ------ ping pong framebuffers for gaussian blur
   glGenFramebuffers(2, pingpong_fbo);
   glGenTextures(2, pingpongBuffers);
+  for (unsigned int i = 0; i < 2; i++) {
+    glBindFramebuffer(GL_FRAMEBUFFER, pingpong_fbo[i]);
+    glBindTexture(GL_TEXTURE_2D, pingpongBuffers[i]);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA, 1600, 1080, 0, GL_RGBA, GL_FLOAT, NULL
+    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongBuffers[i], 0
+    );
+  }
 
   // ------
   std::ifstream file(filename, std::ios::binary);

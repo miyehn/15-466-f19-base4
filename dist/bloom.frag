@@ -1,9 +1,13 @@
 #version 330
 
 in vec2 TexCoords;
-uniform sampler2D image;
-out vec4 displayColor;
+uniform sampler2D IMG;
+uniform int TASK; // 0: blur horizontally; 1: blur vertically; 2: combine result and draw to screen
+out vec4 fragColor;
 
 void main() {
-  displayColor = texture(image, TexCoords);
+  if (TASK == 0 || TASK == 1) fragColor = vec4(0.9, 0.9, 0.9, 1) * texture(IMG, TexCoords);
+  else {
+    fragColor = texture(IMG, TexCoords);
+  }
 }
