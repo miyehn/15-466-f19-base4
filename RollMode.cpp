@@ -197,7 +197,7 @@ void RollMode::update(float elapsed) {
 
     glm::quat target_rotation = plr_rotation * glm::angleAxis(0.35f * 3.1415926525f, glm::vec3(1.0f, 0.0f, 0.0f));
     glm::vec3 target_position = plr_position + 
-      glm::mat3_cast(plr_rotation) * glm::vec3(0.0f, -16.0f, 8.0f);
+      glm::mat3_cast(plr_rotation) * glm::vec3(0.0f, -10.0f, 5.0f);
 
     glm::quat &cam_rotation = level.camera->transform->rotation;
     glm::vec3 &cam_position = level.camera->transform->position;

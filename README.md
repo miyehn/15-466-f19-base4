@@ -6,7 +6,7 @@ Design: The point is really just to fly around and look at the environment, but 
 
 Screen Shot:
 
-![Screen Shot](screenshot.png)
+![Screen Shot](screenshots/screenshot-1569970988710.png)
 
 How To Play:
 
@@ -16,7 +16,9 @@ How To Play:
 
 `escape`: take a screenshot
 
-Known issue: I'm not happy with the behavior of the camera when it gets close to any obstacle.. Also the frame rate makes me sweat.
+Known issues: I'm not happy with the behavior of the camera when it gets close to any obstacle.. And the package/letter doesn't look like a package/letter...Also the frame rate makes me sweat.
+
+(ps: this last commit is made on 10/1 afternoon, changes include minor adjustment to camera position and saving a bunch of screenshots. It can totally be reverted back to the previous commit when being graded, if necessary.)
 
 Sources:
 

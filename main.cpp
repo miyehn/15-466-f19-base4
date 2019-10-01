@@ -128,12 +128,15 @@ int main(int argc, char **argv) {
         //handle input:
         if (Mode::current && Mode::current->handle_event(evt, window_size)) {
           // mode handled it; great
-        } else if (evt.type == SDL_QUIT) {
+        } else if (evt.type == SDL_QUIT || (evt.type==SDL_KEYDOWN && evt.key.keysym.sym==SDLK_ESCAPE)) {
           Mode::set_current(nullptr);
           break;
-        } else if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_ESCAPE) {
-          // --- screenshot key ---
-          std::string filename = "screenshot.png";
+        } else if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_PERIOD) {
+          using namespace std::chrono;
+          std::string filename = 
+            "screenshots/screenshot-" + 
+            std::to_string(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count()) + 
+            ".png";
           std::cout << "Saving screenshot to '" << filename << "'." << std::endl;
           glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
           glReadBuffer(GL_FRONT);
