@@ -37,7 +37,7 @@ struct RollLevel : Scene {
     Window(Scene::Transform *transform_, glm::vec4* col_ptr) 
       : transform(transform_), custom_col(col_ptr) { };
     Scene::Transform *transform;
-    bool isActive = false;
+    bool light_on = false;
     glm::vec4 *custom_col;
   };
   

@@ -128,10 +128,10 @@ int main(int argc, char **argv) {
         //handle input:
         if (Mode::current && Mode::current->handle_event(evt, window_size)) {
           // mode handled it; great
-        } else if (evt.type == SDL_QUIT || (evt.type==SDL_KEYDOWN && evt.key.keysym.sym==SDLK_ESCAPE)) {
+        } else if (evt.type == SDL_QUIT) {
           Mode::set_current(nullptr);
           break;
-        } else if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_PRINTSCREEN) {
+        } else if (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_ESCAPE) {
           // --- screenshot key ---
           std::string filename = "screenshot.png";
           std::cout << "Saving screenshot to '" << filename << "'." << std::endl;

@@ -9,7 +9,12 @@
 #include <iostream>
 
 //used for lookup later:
-Mesh const *mesh_window = nullptr;
+Mesh const *mesh_window1 = nullptr;
+Mesh const *mesh_window2 = nullptr;
+Mesh const *mesh_window3 = nullptr;
+Mesh const *mesh_window4 = nullptr;
+Mesh const *mesh_window5 = nullptr;
+Mesh const *mesh_window6 = nullptr;
 Mesh const *mesh_letter = nullptr;
 Mesh const *mesh_player = nullptr;
 
@@ -30,12 +35,22 @@ Load< MeshBuffer > roll_meshes(LoadTagDefault, []() -> MeshBuffer * {
   roll_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 
   //key objects:
-  mesh_window = &ret->lookup("window");
+  mesh_window1 = &ret->lookup("window1");
+  mesh_window2 = &ret->lookup("window2");
+  mesh_window3 = &ret->lookup("window3");
+  mesh_window4 = &ret->lookup("window4");
+  mesh_window5 = &ret->lookup("window5");
+  mesh_window5 = &ret->lookup("window6");
   mesh_letter = &ret->lookup("letter");
   mesh_player = &ret->lookup("player");
   
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("obstacles"), &ret->lookup("obstacles")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("window"), &ret->lookup("window")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("city"), &ret->lookup("city")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("window1"), &ret->lookup("window1")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("window2"), &ret->lookup("window2")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("window3"), &ret->lookup("window3")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("window4"), &ret->lookup("window4")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("window5"), &ret->lookup("window5")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("window6"), &ret->lookup("window6")));
 
   return ret;
 });
@@ -48,33 +63,6 @@ Load< RollLevel > game_scene(LoadTagLate, []() -> RollLevel* {
 
 Load< BloomProgram > bloom_program(LoadTagEarly, []() -> BloomProgram const * {
   BloomProgram *ret = new BloomProgram();
-
-/*
-  //----- build the pipeline template -----
-  lit_color_texture_program_pipeline.program = ret->program;
-
-  lit_color_texture_program_pipeline.OBJECT_TO_CLIP_mat4 = ret->OBJECT_TO_CLIP_mat4;
-  lit_color_texture_program_pipeline.OBJECT_TO_LIGHT_mat4x3 = ret->OBJECT_TO_LIGHT_mat4x3;
-  lit_color_texture_program_pipeline.NORMAL_TO_LIGHT_mat3 = ret->NORMAL_TO_LIGHT_mat3;
-
-  //make a 1-pixel white texture to bind by default:
-  GLuint tex;
-  glGenTextures(1, &tex);
-
-  glBindTexture(GL_TEXTURE_2D, tex);
-  std::vector< glm::u8vec4 > tex_data(1, glm::u8vec4(0xff));
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-
-  lit_color_texture_program_pipeline.textures[0].texture = tex;
-  lit_color_texture_program_pipeline.textures[0].target = GL_TEXTURE_2D;
-
-  */
   return ret;
 });
 
@@ -118,9 +106,12 @@ RollLevel::RollLevel(std::string const &scene_file) {
         throw std::runtime_error("Level '" + scene_file + "' contains more than one Sphere (starting location).");
       }
       player.transform = transform;
-    } else if (mesh == mesh_window) {
-      windows.emplace_back(transform, custom_col);
-      assert(windows.back().custom_col);
+    } else if (mesh==mesh_window1 || mesh==mesh_window2 || mesh==mesh_window3 ||
+        mesh==mesh_window4 || mesh==mesh_window5 || mesh==mesh_window6) {
+      Window window = Window(transform, custom_col);
+      if (drand48() > 0.25f) window.light_on = true;
+      *window.custom_col = window.light_on ? glm::vec4(1,0,1,1) : glm::vec4(0.3, 0.3, 0.3, 1);
+      windows.push_back(window);
       auto f = mesh_to_collider.find(mesh);
       mesh_colliders.emplace_back(transform, *f->second, *roll_meshes);
     } else if (mesh == mesh_letter) {
@@ -165,7 +156,8 @@ void RollLevel::generate_letter() {
   // set previous dest color to default
   if (letter.destination) {
     assert(letter.destination->custom_col);
-    *letter.destination->custom_col = glm::vec4(1, 0, 1, 1);
+    *letter.destination->custom_col = 
+      letter.destination->light_on ? glm::vec4(1, 0, 1, 1) : glm::vec4(0.3, 0.3, 0.3, 1);
   }
   // generate new dest
   letter.destination = &windows[(int)(safe_drand() * windows.size())];

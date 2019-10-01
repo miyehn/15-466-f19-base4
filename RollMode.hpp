@@ -17,6 +17,7 @@ struct RollMode : Mode {
 	//The (active, being-played) level:
 	void restart();
 	RollLevel level;
+  bool display_text = true;
 
 	//Current control signals:
 	struct {

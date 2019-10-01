@@ -43,6 +43,9 @@ bool RollMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
       controls.backward = (evt.type == SDL_KEYDOWN);
       return true;
     }
+    if (evt.type==SDL_KEYDOWN && evt.key.keysym.sym==SDLK_SPACE) {
+      display_text = !display_text;
+    }
   }
 
   return false;
@@ -297,7 +300,7 @@ void RollMode::draw(glm::uvec2 const &drawable_size) {
   level.camera->aspect = drawable_size.x / float(drawable_size.y);
   level.draw(drawable_size, *level.camera);
 
-  { //help text overlay:
+  if (display_text) { //help text overlay:
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
@@ -305,11 +308,10 @@ void RollMode::draw(glm::uvec2 const &drawable_size) {
     DrawSprites draw(*trade_font_atlas, glm::vec2(0,0), glm::vec2(320, 200), drawable_size, DrawSprites::AlignPixelPerfect);
 
     {
-      std::string help_text = "letters delivered: " + std::to_string(level.delivery_count);
+      std::string help_text = "packages delivered: " + std::to_string(level.delivery_count);
       glm::vec2 min, max;
       draw.get_text_extents(help_text, glm::vec2(0.0f, 0.0f), 1.0f, &min, &max);
-      float x = std::round(160.0f - (0.5f * (max.x + min.x)));
-      draw.draw_text(help_text, glm::vec2(x, 1.0f), 1.0f, glm::u8vec4(0x00,0x00,0x00,0xff));
+      float x = std::round(30.0f - (0.3f * (max.x + min.x)));
       draw.draw_text(help_text, glm::vec2(x, 2.0f), 1.0f, glm::u8vec4(0xff,0xff,0xff,0xff));
     }
   }

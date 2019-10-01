@@ -187,10 +187,13 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
     // bind texture(s)
     glUniform1i(glGetUniformLocation(post_processing_program, "IMG"), 0);
     glUniform1i(glGetUniformLocation(post_processing_program, "FRAME"), 1);
+    glUniform1i(glGetUniformLocation(post_processing_program, "HIGHLIGHT"), 2);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, pingpongBuffers[1]);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
     GL_ERRORS();
