@@ -24,7 +24,7 @@ bool is_light(vec4 col) {
 }
 
 void main() {
-  brightColor = vec4(0, 0, 0, 1);
+  brightColor = vec4(0, 0, 0, 0);
 
 	vec3 n = normalize(normal);
 	vec3 l = normalize(vec3(0.1, 0.25, 1.0));
@@ -32,6 +32,7 @@ void main() {
 
   if (is_light(albedo)) {
     fragColor = albedo;
+    brightColor = albedo;
     return;
   }
 

@@ -170,7 +170,7 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
       glUniform1i(loc, (int)horizontal);
       // bind input texture
       glBindTexture(
-          GL_TEXTURE_2D, first_iteration ? colorBuffers[0] : pingpongBuffers[!horizontal]
+          GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongBuffers[!horizontal]
       ); 
       glDrawArrays(GL_TRIANGLES, 0, 6);
       horizontal = !horizontal;
@@ -185,13 +185,14 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
     assert (loc != -1U);
     glUniform1i(loc, 2);
     // bind texture(s)
+    glUniform1i(glGetUniformLocation(post_processing_program, "IMG"), 0);
+    glUniform1i(glGetUniformLocation(post_processing_program, "FRAME"), 1);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, pingpongBuffers[1]);
-    glTexImage2D(
-      GL_TEXTURE_2D, 0, GL_RGBA, drawable_size.x, drawable_size.y, 0, GL_RGBA, GL_FLOAT, NULL
-    );
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
 
+    glDrawArrays(GL_TRIANGLES, 0, 6);
     GL_ERRORS();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
