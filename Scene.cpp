@@ -152,7 +152,6 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
 
   glUseProgram(0);
   glBindVertexArray(0);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   GL_ERRORS();
 
   if (post_processing_program != 0) {
@@ -191,11 +190,6 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
     glTexImage2D(
       GL_TEXTURE_2D, 0, GL_RGBA, drawable_size.x, drawable_size.y, 0, GL_RGBA, GL_FLOAT, NULL
     );
-    /*
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);*/
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     GL_ERRORS();
@@ -219,10 +213,8 @@ void Scene::load(std::string const &filename,
   for (GLuint i=0; i<2; i++) {
     glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
     glTexImage2D(
-      // here hardcoding texture as 2x window size.. 
-      // For screens that don't get 2x resolution, only a quarter of this texture would be used
-      // does get actual drawable size in draw() tho
-      GL_TEXTURE_2D, 0, GL_RGBA, 1600, 1080, 0, GL_RGBA, GL_FLOAT, NULL    
+      // ended up disabling high resolution draw so the program runs at a reasonable framerate...
+      GL_TEXTURE_2D, 0, GL_RGBA, 800, 540, 0, GL_RGBA, GL_FLOAT, NULL    
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -235,7 +227,7 @@ void Scene::load(std::string const &filename,
   // setup associated depth buffer
   glGenRenderbuffers(1, &depthBuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1600, 1080);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 800, 540);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
   glDrawBuffers(2, color_attachments);
@@ -268,7 +260,7 @@ void Scene::load(std::string const &filename,
     glBindFramebuffer(GL_FRAMEBUFFER, pingpong_fbo[i]);
     glBindTexture(GL_TEXTURE_2D, pingpongBuffers[i]);
     glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGBA, 1600, 1080, 0, GL_RGBA, GL_FLOAT, NULL
+        GL_TEXTURE_2D, 0, GL_RGBA, 800, 540, 0, GL_RGBA, GL_FLOAT, NULL
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
