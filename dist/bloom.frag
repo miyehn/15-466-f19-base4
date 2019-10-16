@@ -3,12 +3,13 @@
 in vec2 TexCoords;
 uniform sampler2D IMG;
 uniform sampler2D FRAME; // only used when TASK==2: the originally rendered frame
-uniform sampler2D HIGHLIGHT;
+uniform sampler2D HIGHLIGHT; // used as shadow in 3
+uniform vec2 TEX_OFFSET;
 
 // 0: blur horizontally; 
 // 1: blur vertically; 
 // 2: combine result and draw to screen
-// 3: copy to screen
+// 3: copy to screen by combining albedo & shadow
 uniform int TASK; 
 out vec4 fragColor;
 
@@ -53,7 +54,14 @@ void main() {
       fragColor = firstpass + tex;
     }
   } else if (TASK == 3) { // copy to screen
-    fragColor = texture(FRAME, TexCoords);
+    vec4 firstpass = texture(FRAME, TexCoords);
+    vec4 shadow = texture(HIGHLIGHT, TexCoords);
+    // combine albedo & shadow
+    fragColor = shadow.a > 0 ? shadow : firstpass;
+    // edge detection
+    float difX = length(firstpass - texture(FRAME, TexCoords + vec2(TEX_OFFSET.x, 0)));
+    float difY = length(firstpass - texture(FRAME, TexCoords + vec2(0, TEX_OFFSET.y)));
+    if (difX > 0.05 || difY > 0.05) fragColor -= vec4(0.2, 0.15, 0.1, 0);
   } else {
     fragColor = vec4(1,0.5,1,1);
   }

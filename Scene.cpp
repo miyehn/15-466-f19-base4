@@ -79,7 +79,7 @@ void Scene::draw(glm::uvec2 drawable_size, Camera const &camera) const {
 void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_light) const {
 
   glBindFramebuffer(GL_FRAMEBUFFER, firstpass_fbo);
-  glViewport(0, 0, drawable_size.x/4.0f, drawable_size.y/4.0f);
+  glViewport(0, 0, drawable_size.x/2.0f, drawable_size.y/2.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   //Iterate through all drawables, sending each one to OpenGL:
@@ -209,10 +209,17 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
     GLuint loc = glGetUniformLocation(post_processing_program, "TASK");
     assert (loc != -1U);
     glUniform1i(loc, 3);
+    // set uniform for texture offset
+    loc = glGetUniformLocation(post_processing_program, "TEX_OFFSET");
+    assert (loc != -1U);
+    glUniform2f(loc, 1.0f / 400.0f, 1.0f / 270.0f);
     // bind input
-    glUniform1i(glGetUniformLocation(post_processing_program, "IMG"), 0);
+    glUniform1i(glGetUniformLocation(post_processing_program, "FRAME"), 0);
+    glUniform1i(glGetUniformLocation(post_processing_program, "HIGHLIGHT"), 1);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
     // draw
     glDrawArrays(GL_TRIANGLES, 0, 6);
     GL_ERRORS();
@@ -237,7 +244,7 @@ void Scene::load(std::string const &filename,
     glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
     glTexImage2D(
       // ended up disabling high resolution draw so the program runs at a reasonable framerate...
-      GL_TEXTURE_2D, 0, GL_RGBA, 200, 135, 0, GL_RGBA, GL_FLOAT, NULL    
+      GL_TEXTURE_2D, 0, GL_RGBA, 400, 270, 0, GL_RGBA, GL_FLOAT, NULL    
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
