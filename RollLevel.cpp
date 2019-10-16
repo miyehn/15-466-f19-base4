@@ -9,14 +9,10 @@
 #include <iostream>
 
 //used for lookup later:
-Mesh const *mesh_window1 = nullptr;
-Mesh const *mesh_window2 = nullptr;
-Mesh const *mesh_window3 = nullptr;
-Mesh const *mesh_window4 = nullptr;
-Mesh const *mesh_window5 = nullptr;
-Mesh const *mesh_window6 = nullptr;
-Mesh const *mesh_letter = nullptr;
 Mesh const *mesh_player = nullptr;
+Mesh const *mesh_floor = nullptr;
+Mesh const *mesh_blarge = nullptr;
+Mesh const *mesh_bsmall = nullptr;
 
 //names of mesh-to-collider-mesh:
 std::unordered_map< Mesh const *, Mesh const * > mesh_to_collider;
@@ -35,22 +31,15 @@ Load< MeshBuffer > roll_meshes(LoadTagDefault, []() -> MeshBuffer * {
   roll_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 
   //key objects:
-  mesh_window1 = &ret->lookup("window1");
-  mesh_window2 = &ret->lookup("window2");
-  mesh_window3 = &ret->lookup("window3");
-  mesh_window4 = &ret->lookup("window4");
-  mesh_window5 = &ret->lookup("window5");
-  mesh_window5 = &ret->lookup("window6");
-  mesh_letter = &ret->lookup("letter");
   mesh_player = &ret->lookup("player");
+  mesh_floor = &ret->lookup("floor");
+  mesh_blarge = &ret->lookup("blob_large");
+  mesh_bsmall = &ret->lookup("blob_small");
   
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("city"), &ret->lookup("city")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("window1"), &ret->lookup("window1")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("window2"), &ret->lookup("window2")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("window3"), &ret->lookup("window3")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("window4"), &ret->lookup("window4")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("window5"), &ret->lookup("window5")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("window6"), &ret->lookup("window6")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("player"), &ret->lookup("player")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("floor"), &ret->lookup("floor")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("blob_large"), &ret->lookup("blob_large")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("blob_small"), &ret->lookup("blob_small")));
 
   return ret;
 });
@@ -103,21 +92,9 @@ RollLevel::RollLevel(std::string const &scene_file) {
     //associate level info with the drawable:
     if (mesh == mesh_player) {
       if (player.transform) {
-        throw std::runtime_error("Level '" + scene_file + "' contains more than one Sphere (starting location).");
+        throw std::runtime_error("Level '" + scene_file + "' contains more than one player.");
       }
       player.transform = transform;
-    } else if (mesh==mesh_window1 || mesh==mesh_window2 || mesh==mesh_window3 ||
-        mesh==mesh_window4 || mesh==mesh_window5 || mesh==mesh_window6) {
-      Window window = Window(transform, custom_col);
-      if (drand48() > 0.25f) window.light_on = true;
-      *window.custom_col = window.light_on ? glm::vec4(1,0,1,1) : glm::vec4(0.3, 0.3, 0.3, 1);
-      windows.push_back(window);
-      auto f = mesh_to_collider.find(mesh);
-      mesh_colliders.emplace_back(transform, *f->second, *roll_meshes);
-    } else if (mesh == mesh_letter) {
-      letter.transform = transform;
-      letter.default_rotation = transform->rotation;
-      letter.custom_col = custom_col;
     } else {
       auto f = mesh_to_collider.find(mesh);
       assert (f != mesh_to_collider.end());
@@ -126,12 +103,11 @@ RollLevel::RollLevel(std::string const &scene_file) {
   });
 
   if (!player.transform) {
-    throw std::runtime_error("Level '" + scene_file + "' contains no Sphere (starting location).");
+    throw std::runtime_error("Level '" + scene_file + "' contains no player.");
   }
 
   std::cout << "Level '" << scene_file << "' has "
-    << mesh_colliders.size() << " mesh colliders, "
-    << windows.size() << " windows "
+    << mesh_colliders.size() << " mesh colliders."
     << std::endl;
   
   //Create player camera:
@@ -142,47 +118,4 @@ RollLevel::RollLevel(std::string const &scene_file) {
   camera->fovy = 60.0f / 180.0f * 3.1415926f;
   camera->near = 0.05f;
 
-  generate_letter();
-
-}
-
-float safe_drand() {
-  float r = drand48();
-  return r==1.0f ? 0.99999999f : r;
-}
-
-void RollLevel::generate_letter() {
-
-  // set previous dest color to default
-  if (letter.destination) {
-    assert(letter.destination->custom_col);
-    *letter.destination->custom_col = 
-      letter.destination->light_on ? glm::vec4(1, 0, 1, 1) : glm::vec4(0.3, 0.3, 0.3, 1);
-  }
-  // generate new dest
-  letter.destination = &windows[(int)(safe_drand() * windows.size())];
-  // get a random color from list
-  glm::vec4 col = letter_colors[(int)(safe_drand() * letter_colors.size())];
-  // set new dest color to custom
-  assert(letter.destination && letter.destination->custom_col);
-  *letter.destination->custom_col = glm::vec4(col.x, col.y, col.z, col.w);
-  assert(letter.custom_col);
-  *letter.custom_col = glm::vec4(col.x*0.99f, col.y*0.99f, col.z*0.99f, col.w);
-
-  letter.transform->position = glm::vec3(
-      (drand48()-0.5f) * 80.0f, 
-      (drand48()-0.5f) * 80.0f, 180);
-}
-
-void RollLevel::Letter::update_transform(Scene::Transform *plr_t, bool carrying, float elapsed) {
-  if (carrying) {
-    assert(plr_t);
-    glm::vec3 offset = transform->rotation * glm::vec3(0, 0, 2);
-    transform->position = plr_t->position + offset;
-    transform->rotation = plr_t->rotation;
-  } else {
-    transform->rotation = default_rotation;
-    float &z = transform->position.z;
-    z += (140.0f - z) * elapsed * 0.25f;
-  }
 }

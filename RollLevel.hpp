@@ -27,28 +27,6 @@ struct RollLevel : Scene {
     MeshBuffer const *buffer;
   };
 
-  std::vector<glm::vec4> letter_colors = {
-    glm::vec4(1.0f, 0.5f, 0.5f, 1.0f),
-    glm::vec4(0.5f, 1.0f, 0.5f, 1.0f),
-    glm::vec4(0.5f, 0.5f, 1.0f, 1.0f)
-  };
-
-  struct Window {
-    Window(Scene::Transform *transform_, glm::vec4* col_ptr) 
-      : transform(transform_), custom_col(col_ptr) { };
-    Scene::Transform *transform;
-    bool light_on = false;
-    glm::vec4 *custom_col;
-  };
-  
-  struct Letter {
-    void update_transform(Scene::Transform *plr_t, bool carrying, float elapsed);
-    Scene::Transform *transform = nullptr;
-    glm::quat default_rotation = glm::quat();
-    glm::vec4 *custom_col = nullptr;
-    Window *destination = nullptr;
-  };
-
   //Sphere being rolled tracked using this structure:
   struct Player {
     Scene::Transform *transform = nullptr;
@@ -61,18 +39,10 @@ struct RollLevel : Scene {
     float elevation_acc = 0.0f;
   };
 
-  void generate_letter();
-
   //Additional information for things in the level:
   Scene::Camera *camera = nullptr;
   std::vector< MeshCollider > mesh_colliders = {};
-  std::vector< Window > windows = {};
-  Letter letter;
   Player player;
-
-  // other game states:
-  bool carrying_letter = false;
-  int delivery_count = 0;
   
 };
 

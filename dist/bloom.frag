@@ -4,7 +4,12 @@ in vec2 TexCoords;
 uniform sampler2D IMG;
 uniform sampler2D FRAME; // only used when TASK==2: the originally rendered frame
 uniform sampler2D HIGHLIGHT;
-uniform int TASK; // 0: blur horizontally; 1: blur vertically; 2: combine result and draw to screen
+
+// 0: blur horizontally; 
+// 1: blur vertically; 
+// 2: combine result and draw to screen
+// 3: copy to screen
+uniform int TASK; 
 out vec4 fragColor;
 
 bool is_light(vec4 col) {
@@ -38,7 +43,7 @@ void main() {
       }
     }
     fragColor = result;
-  } else { // combine with first pass result
+  } else if (TASK == 2) { // combine with first pass result
     vec4 firstpass = texture(FRAME, TexCoords);
     vec4 highlight = texture(HIGHLIGHT, TexCoords);
     vec4 tex = texture(IMG, TexCoords);
@@ -47,5 +52,9 @@ void main() {
     } else {
       fragColor = firstpass + tex;
     }
+  } else if (TASK == 3) { // copy to screen
+    fragColor = texture(FRAME, TexCoords);
+  } else {
+    fragColor = vec4(1,0.5,1,1);
   }
 }

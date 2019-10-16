@@ -19,27 +19,26 @@ vec4 over(vec4 elem, vec4 canvas) {
   return vec4(cr, cg, cb, ca);
 }
 
-bool is_light(vec4 col) {
-  return col.a==1 && (col.r==1 || col.g==1 || col.b==1);
-}
-
 void main() {
   brightColor = vec4(0, 0, 0, 0);
 
+  // fixed directional lighting
+  float energy = 3.0f;
 	vec3 n = normalize(normal);
 	vec3 l = normalize(vec3(0.1, 0.25, 1.0));
 	vec4 albedo = texture(TEX, texCoord) * color;
-
-  if (is_light(albedo)) {
+  vec3 reflectance = albedo.rgb / 3.1415926535;
+  // vec4 diffuse = vec4(max(0, dot(n,l)) * reflectance * energy, albedo.a);
+  
+  // fun stuff: toon shade it
+  float threshold = 0.4f;
+  if (dot(n,l) >= threshold) {
     fragColor = albedo;
-    brightColor = albedo;
-    return;
+  } else {
+    fragColor = albedo * vec4(0.9, 0.8, 0.75, 1);
   }
 
-	// simple hemispherical lighting model:
-	vec3 light = mix(vec3(0.0,0.0,0.1), vec3(1.0,1.0,0.95), dot(n,l)*0.5+0.5);
-	fragColor = vec4(light*albedo.rgb, albedo.a);
-
+  /*
   // overlay fog color on top (as a function of depth)
   float depth_ = depth;
   depth_ = min(depth_, 200);
@@ -66,6 +65,7 @@ void main() {
   float height_overlay_extent = min((depth_-0.1) / 40, 1);
   height_col.a = mix(0, height_col.a, height_overlay_extent);
   fragColor = over(height_col, fragColor);
+  */
   
 
 }
