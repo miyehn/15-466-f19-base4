@@ -80,7 +80,9 @@ void Scene::draw(glm::uvec2 drawable_size, Camera const &camera) const {
 void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_light) const {
 
   glBindFramebuffer(GL_FRAMEBUFFER, firstpass_fbo);
-  glViewport(0, 0, drawable_size.x/2.0f, drawable_size.y/2.0f);
+  glViewport(0, 0, 
+      drawable_size.x / postprocessing_program->pixel_size, 
+      drawable_size.y / postprocessing_program->pixel_size);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   //Iterate through all drawables, sending each one to OpenGL:
@@ -168,7 +170,9 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
   // set uniform so the shader performs copy to screen directly
   glUniform1i(postprocessing_program->TASK_int, 3);
   // set uniform for texture offset
-  glUniform2f(postprocessing_program->TEX_OFFSET_vec2, 1.0f / 400.0f, 1.0f / 270.0f);
+  glUniform2f(postprocessing_program->TEX_OFFSET_vec2, 
+      postprocessing_program->pixel_size / 800.0f, 
+      postprocessing_program->pixel_size / 540.0f);
   // bind input
   glUniform1i(postprocessing_program->TEX1_tex, 0);
   glUniform1i(postprocessing_program->TEX2_tex, 1);
@@ -190,16 +194,19 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
 void Scene::load(std::string const &filename,
   std::function< void(Scene &, Transform *, std::string const &) > const &on_drawable) {
   
-  // ------ generate framebuffer for first pass
+  // ------ generate framebuffer for firstpass
   glGenFramebuffers(1, &firstpass_fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, firstpass_fbo);
-
+  // and its two color output layers
   glGenTextures(2, colorBuffers);
   for (GLuint i=0; i<2; i++) {
     glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
     glTexImage2D(
       // ended up disabling high resolution draw so the program runs at a reasonable framerate...
-      GL_TEXTURE_2D, 0, GL_RGBA, 400, 270, 0, GL_RGBA, GL_FLOAT, NULL    
+      GL_TEXTURE_2D, 0, GL_RGBA, 
+      (GLint)(800/postprocessing_program->pixel_size), 
+      (GLint)(540/postprocessing_program->pixel_size), 
+      0, GL_RGBA, GL_FLOAT, NULL    
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -212,7 +219,7 @@ void Scene::load(std::string const &filename,
   // setup associated depth buffer
   glGenRenderbuffers(1, &depthBuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 800, 540);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 800, 540); // w&h of drawable size
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
   glDrawBuffers(2, color_attachments);
@@ -246,7 +253,7 @@ void Scene::load(std::string const &filename,
     glBindTexture(GL_TEXTURE_2D, pingpongBuffers[i]);
     glTexImage2D(
         GL_TEXTURE_2D, 0, GL_RGBA, 800, 540, 0, GL_RGBA, GL_FLOAT, NULL
-    );
+    ); // w&h of drawable size
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -256,7 +263,8 @@ void Scene::load(std::string const &filename,
     );
   }
 
-  // ------
+  // ---------------------------------------------
+
   std::ifstream file(filename, std::ios::binary);
 
   std::vector< char > names;

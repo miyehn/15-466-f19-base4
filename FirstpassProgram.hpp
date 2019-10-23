@@ -21,7 +21,7 @@ struct FirstpassProgram {
 	GLuint OBJECT_TO_CLIP_mat4 = -1U;
 	GLuint OBJECT_TO_LIGHT_mat4x3 = -1U;
 	GLuint NORMAL_TO_LIGHT_mat3 = -1U;
-  GLuint CUSTOM_COL = -1U;
+  GLuint CUSTOM_COL_vec4 = -1U;
 	
 };
 

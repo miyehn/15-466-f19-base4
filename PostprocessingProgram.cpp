@@ -41,7 +41,6 @@ PostprocessingProgram::PostprocessingProgram() {
   assert(TEX0_tex != -1U);
   assert(TEX0_tex != -1U);
   assert(TEX_OFFSET_vec2 != -1U);
-  // GLuint TEX_sampler2D = glGetUniformLocation(program, "TEX");
 
 }
 
