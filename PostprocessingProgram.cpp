@@ -22,31 +22,27 @@ PostprocessingProgram::PostprocessingProgram() {
 
   program = gl_compile_program(
     //vertex shader:
-    vert_content
-  ,
+    vert_content,
     //fragment shader:
     frag_content
   );
-/*
-  //look up the locations of vertex attributes:
+  //look up the locations of vert attributes:
   Position_vec4 = glGetAttribLocation(program, "Position");
-  Normal_vec3 = glGetAttribLocation(program, "Normal");
-  Color_vec4 = glGetAttribLocation(program, "Color");
-  TexCoord_vec2 = glGetAttribLocation(program, "TexCoord");
 
-  //look up the locations of uniforms:
-  OBJECT_TO_CLIP_mat4 = glGetUniformLocation(program, "OBJECT_TO_CLIP");
-  OBJECT_TO_LIGHT_mat4x3 = glGetUniformLocation(program, "OBJECT_TO_LIGHT");
-  NORMAL_TO_LIGHT_mat3 = glGetUniformLocation(program, "NORMAL_TO_LIGHT");
-  GLuint TEX_sampler2D = glGetUniformLocation(program, "TEX");
+  //look up the locations of uniforms (frag attributes):
+  TASK_int = glGetUniformLocation(program, "TASK");
+  TEX0_tex = glGetUniformLocation(program, "IMG");
+  TEX1_tex = glGetUniformLocation(program, "FRAME");
+  TEX2_tex = glGetUniformLocation(program, "HIGHLIGHT");
+  TEX_OFFSET_vec2 = glGetUniformLocation(program, "TEX_OFFSET");
 
-  //set TEX to always refer to texture binding zero:
-  glUseProgram(program); //bind program -- glUniform* calls refer to this program now
+  assert(TASK_int != -1U);
+  assert(TEX0_tex != -1U);
+  assert(TEX0_tex != -1U);
+  assert(TEX0_tex != -1U);
+  assert(TEX_OFFSET_vec2 != -1U);
+  // GLuint TEX_sampler2D = glGetUniformLocation(program, "TEX");
 
-  glUniform1i(TEX_sampler2D, 0); //set TEX to sample from GL_TEXTURE0
-
-  glUseProgram(0); //unbind program -- glUniform* calls refer to ??? now
-  */
 }
 
 PostprocessingProgram::~PostprocessingProgram() {

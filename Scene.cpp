@@ -166,16 +166,12 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   // set uniform so the shader performs copy to screen directly
-  GLuint loc = glGetUniformLocation(pprogram, "TASK");
-  assert (loc != -1U);
-  glUniform1i(loc, 3);
+  glUniform1i(postprocessing_program->TASK_int, 3);
   // set uniform for texture offset
-  loc = glGetUniformLocation(pprogram, "TEX_OFFSET");
-  assert (loc != -1U);
-  glUniform2f(loc, 1.0f / 400.0f, 1.0f / 270.0f);
+  glUniform2f(postprocessing_program->TEX_OFFSET_vec2, 1.0f / 400.0f, 1.0f / 270.0f);
   // bind input
-  glUniform1i(glGetUniformLocation(pprogram, "FRAME"), 0);
-  glUniform1i(glGetUniformLocation(pprogram, "HIGHLIGHT"), 1);
+  glUniform1i(postprocessing_program->TEX1_tex, 0);
+  glUniform1i(postprocessing_program->TEX2_tex, 1);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
   glActiveTexture(GL_TEXTURE1);
