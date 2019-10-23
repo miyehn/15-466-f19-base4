@@ -30,6 +30,10 @@ RollMode::~RollMode() {
 bool RollMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
 
   if (evt.type == SDL_KEYDOWN || evt.type == SDL_KEYUP) {
+    if (evt.type==SDL_KEYDOWN && evt.key.keysym.sym==SDLK_SPACE) {
+      moving = !moving;
+      return true;
+    }
     if (evt.key.keysym.scancode == SDL_SCANCODE_A) {
       controls.left = (evt.type == SDL_KEYDOWN);
       return true;
@@ -83,7 +87,7 @@ void RollMode::update(float elapsed) {
 
     //update player using shove:
     //decay existing velocity toward shove:
-    velocity = glm::mix(shove, velocity, std::pow(0.5f, elapsed / 0.25f));
+    velocity = moving ? glm::mix(shove, velocity, std::pow(0.5f, elapsed / 0.25f)) : glm::vec3(0,0,0);
 
     // decay acc toward 0
     level.player.view_azimuth_acc -= level.player.view_azimuth_acc * elapsed * 2.0f;
@@ -177,7 +181,7 @@ void RollMode::update(float elapsed) {
 
     glm::quat target_rotation = plr_rotation * glm::angleAxis(0.35f * 3.1415926525f, glm::vec3(1.0f, 0.0f, 0.0f));
     glm::vec3 target_position = plr_position + 
-      glm::mat3_cast(plr_rotation) * glm::vec3(0.0f, -10.0f, 5.0f);
+      glm::mat3_cast(plr_rotation) * glm::vec3(0.0f, -2.0f, 1.0f);
 
     glm::quat &cam_rotation = level.camera->transform->rotation;
     glm::vec3 &cam_position = level.camera->transform->position;
@@ -271,7 +275,7 @@ void RollMode::update(float elapsed) {
 
 void RollMode::draw(glm::uvec2 const &drawable_size) {
   //--- actual drawing ---
-  glClearColor(0.45f, 0.45f, 0.50f, 0.0f);
+  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glDisable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);

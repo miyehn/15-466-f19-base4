@@ -26,6 +26,7 @@ struct RollMode : Mode {
 		bool left = false;
 		bool right = false;
 	} controls;
+  bool moving = true;
 
 	//some debug drawing done during update:
 	std::unique_ptr< DrawLines > DEBUG_draw_lines;

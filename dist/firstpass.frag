@@ -25,17 +25,17 @@ void main() {
   // fixed directional lighting
   float energy = 3.0f;
 	vec3 n = normalize(normal);
-	vec3 l = normalize(vec3(0.0, 0.0, 1.0));
+	vec3 l = normalize(vec3(0.4, 0.2, 1.0));
 	vec4 albedo = texture(TEX, texCoord) * color;
   vec3 reflectance = albedo.rgb / 3.1415926535;
   // vec4 diffuse = vec4(max(0, dot(n,l)) * reflectance * energy, albedo.a);
   
   // fun stuff: toon shade it
-  float threshold = 0.4f;
+  float threshold = 0.5f;
   fragColor = albedo;
   if (dot(n,l) < threshold) {
     // in shadow
-    brightColor = albedo * vec4(0.9, 0.8, 0.75, 1);
+    brightColor = albedo * vec4(0.8, 0.75, 0.7, 1);
   } 
 
   /*

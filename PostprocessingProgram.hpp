@@ -5,9 +5,9 @@
 #include "Scene.hpp"
 
 //Shader program that draws transformed, lit, textured vertices tinted with vertex colors:
-struct BloomProgram {
-  BloomProgram();
-  ~BloomProgram();
+struct PostprocessingProgram {
+  PostprocessingProgram();
+  ~PostprocessingProgram();
 
   GLuint program = 0;
 
@@ -31,10 +31,4 @@ struct BloomProgram {
   //TEXTURE0 - texture that is accessed by TexCoord
 };
 
-/*
-extern Load< LitColorTextureProgram > lit_color_texture_program;
-
-//For convenient scene-graph setup, copy this object:
-// NOTE: by default, has texture bound to 1-pixel white texture -- so it's okay to use with vertex-color-only meshes.
-extern Scene::Drawable::Pipeline lit_color_texture_program_pipeline;
-*/
+extern Load< PostprocessingProgram > postprocessing_program;

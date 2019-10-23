@@ -1,4 +1,6 @@
 #include "Scene.hpp"
+#include "FirstpassProgram.hpp"
+#include "PostprocessingProgram.hpp"
 
 #include "gl_errors.hpp"
 #include "read_write_chunk.hpp"
@@ -8,7 +10,6 @@
 #include <fstream>
 
 //-------------------------
-
 
 glm::mat4 Scene::Transform::make_local_to_parent() const {
   return glm::mat4( //translate
@@ -154,80 +155,38 @@ void Scene::draw(glm::uvec2 drawable_size, glm::mat4 const &world_to_clip, glm::
   glBindVertexArray(0);
   GL_ERRORS();
 
-  glUseProgram(post_processing_program);
+  //---- postprocessing pass ----
+  GLuint pprogram = postprocessing_program->program;
+
+  glUseProgram(pprogram);
   glBindVertexArray(trivial_vao);
   glBindBuffer(GL_ARRAY_BUFFER, trivial_vbo);
   glActiveTexture(GL_TEXTURE0);
   glViewport(0, 0, drawable_size.x, drawable_size.y);
 
-  if (use_postprocessing) {
-
-    bool horizontal = true, first_iteration = true;
-    int amount = 6;
-    for (unsigned int i = 0; i < amount; i++) {
-      glBindFramebuffer(GL_FRAMEBUFFER, pingpong_fbo[horizontal]); 
-      // set horizontal uniform
-      GLuint loc = glGetUniformLocation(post_processing_program, "TASK");
-      assert (loc != -1U);
-      glUniform1i(loc, (int)horizontal);
-      // bind input texture
-      glBindTexture(
-          GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongBuffers[!horizontal]
-      ); 
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      horizontal = !horizontal;
-      if (first_iteration)
-        first_iteration = false;
-    }
-
-    // ---- draw to screen
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    // set uniform so the shader draws the last pass
-    GLuint loc = glGetUniformLocation(post_processing_program, "TASK");
-    assert (loc != -1U);
-    glUniform1i(loc, 2);
-    // bind texture(s)
-    glUniform1i(glGetUniformLocation(post_processing_program, "IMG"), 0);
-    glUniform1i(glGetUniformLocation(post_processing_program, "FRAME"), 1);
-    glUniform1i(glGetUniformLocation(post_processing_program, "HIGHLIGHT"), 2);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, pingpongBuffers[1]);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
-
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    GL_ERRORS();
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-  } else { // copy to screen without any post processing
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    // set uniform so the shader performs copy to screen directly
-    GLuint loc = glGetUniformLocation(post_processing_program, "TASK");
-    assert (loc != -1U);
-    glUniform1i(loc, 3);
-    // set uniform for texture offset
-    loc = glGetUniformLocation(post_processing_program, "TEX_OFFSET");
-    assert (loc != -1U);
-    glUniform2f(loc, 1.0f / 400.0f, 1.0f / 270.0f);
-    // bind input
-    glUniform1i(glGetUniformLocation(post_processing_program, "FRAME"), 0);
-    glUniform1i(glGetUniformLocation(post_processing_program, "HIGHLIGHT"), 1);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
-    // draw
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    GL_ERRORS();
-    // unbind things
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-  }
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  // set uniform so the shader performs copy to screen directly
+  GLuint loc = glGetUniformLocation(pprogram, "TASK");
+  assert (loc != -1U);
+  glUniform1i(loc, 3);
+  // set uniform for texture offset
+  loc = glGetUniformLocation(pprogram, "TEX_OFFSET");
+  assert (loc != -1U);
+  glUniform2f(loc, 1.0f / 400.0f, 1.0f / 270.0f);
+  // bind input
+  glUniform1i(glGetUniformLocation(pprogram, "FRAME"), 0);
+  glUniform1i(glGetUniformLocation(pprogram, "HIGHLIGHT"), 1);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
+  // draw
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+  GL_ERRORS();
+  // unbind things
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+  glUseProgram(0);
 
 }
 

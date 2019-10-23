@@ -5,9 +5,9 @@
 #include "Scene.hpp"
 
 //Shader program that draws transformed, lit, textured vertices tinted with vertex colors:
-struct LitColorTextureProgram {
-	LitColorTextureProgram();
-	~LitColorTextureProgram();
+struct FirstpassProgram {
+	FirstpassProgram();
+	~FirstpassProgram();
 
 	GLuint program = 0;
 
@@ -23,12 +23,10 @@ struct LitColorTextureProgram {
 	GLuint NORMAL_TO_LIGHT_mat3 = -1U;
   GLuint CUSTOM_COL = -1U;
 	
-	//Textures:
-	//TEXTURE0 - texture that is accessed by TexCoord
 };
 
-extern Load< LitColorTextureProgram > lit_color_texture_program;
+extern Load< FirstpassProgram > firstpass_program;
 
 //For convenient scene-graph setup, copy this object:
 // NOTE: by default, has texture bound to 1-pixel white texture -- so it's okay to use with vertex-color-only meshes.
-extern Scene::Drawable::Pipeline lit_color_texture_program_pipeline;
+extern Scene::Drawable::Pipeline firstpass_program_pipeline;

@@ -1,21 +1,21 @@
-#include "LitColorTextureProgram.hpp"
+#include "FirstpassProgram.hpp"
 
 #include "gl_compile_program.hpp"
 #include "gl_errors.hpp"
 #include <fstream>
 #include "data_path.hpp"
 
-Scene::Drawable::Pipeline lit_color_texture_program_pipeline;
+Scene::Drawable::Pipeline firstpass_program_pipeline;
 
-Load< LitColorTextureProgram > lit_color_texture_program(LoadTagEarly, []() -> LitColorTextureProgram const * {
-	LitColorTextureProgram *ret = new LitColorTextureProgram();
+Load< FirstpassProgram > firstpass_program(LoadTagEarly, []() -> FirstpassProgram const * {
+	FirstpassProgram *ret = new FirstpassProgram();
 
 	//----- build the pipeline template -----
-	lit_color_texture_program_pipeline.program = ret->program;
+	firstpass_program_pipeline.program = ret->program;
 
-	lit_color_texture_program_pipeline.OBJECT_TO_CLIP_mat4 = ret->OBJECT_TO_CLIP_mat4;
-	lit_color_texture_program_pipeline.OBJECT_TO_LIGHT_mat4x3 = ret->OBJECT_TO_LIGHT_mat4x3;
-	lit_color_texture_program_pipeline.NORMAL_TO_LIGHT_mat3 = ret->NORMAL_TO_LIGHT_mat3;
+	firstpass_program_pipeline.OBJECT_TO_CLIP_mat4 = ret->OBJECT_TO_CLIP_mat4;
+	firstpass_program_pipeline.OBJECT_TO_LIGHT_mat4x3 = ret->OBJECT_TO_LIGHT_mat4x3;
+	firstpass_program_pipeline.NORMAL_TO_LIGHT_mat3 = ret->NORMAL_TO_LIGHT_mat3;
 
 	//make a 1-pixel white texture to bind by default:
 	GLuint tex;
@@ -31,19 +31,19 @@ Load< LitColorTextureProgram > lit_color_texture_program(LoadTagEarly, []() -> L
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 
-	lit_color_texture_program_pipeline.textures[0].texture = tex;
-	lit_color_texture_program_pipeline.textures[0].target = GL_TEXTURE_2D;
+	firstpass_program_pipeline.textures[0].texture = tex;
+  firstpass_program_pipeline.textures[0].target = GL_TEXTURE_2D;
 
 	return ret;
 });
 
-LitColorTextureProgram::LitColorTextureProgram() {
+FirstpassProgram::FirstpassProgram() {
 	//Compile vertex and fragment shaders using the convenient 'gl_compile_program' helper function:
-  std::ifstream vertex_fs(data_path("shader.vert"));
+  std::ifstream vertex_fs(data_path("firstpass.vert"));
   std::string vert_content( 
       (std::istreambuf_iterator<char>(vertex_fs)), std::istreambuf_iterator<char>() );
 
-  std::ifstream fragment_fs(data_path("shader.frag"));
+  std::ifstream fragment_fs(data_path("firstpass.frag"));
   std::string frag_content( 
       (std::istreambuf_iterator<char>(fragment_fs)), std::istreambuf_iterator<char>() );
 
@@ -54,8 +54,6 @@ LitColorTextureProgram::LitColorTextureProgram() {
 		//fragment shader:
     frag_content
 	);
-	//As you can see above, adjacent strings in C/C++ are concatenated.
-	// this is very useful for writing long shader programs inline.
 
 	//look up the locations of vertex attributes:
 	Position_vec4 = glGetAttribLocation(program, "Position");
@@ -71,13 +69,11 @@ LitColorTextureProgram::LitColorTextureProgram() {
 
 	//set TEX to always refer to texture binding zero:
 	glUseProgram(program); //bind program -- glUniform* calls refer to this program now
-
 	glUniform1i(TEX_sampler2D, 0); //set TEX to sample from GL_TEXTURE0
-
 	glUseProgram(0); //unbind program -- glUniform* calls refer to ??? now
 }
 
-LitColorTextureProgram::~LitColorTextureProgram() {
+FirstpassProgram::~FirstpassProgram() {
 	glDeleteProgram(program);
 	program = 0;
 }

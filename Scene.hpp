@@ -60,8 +60,7 @@ struct Scene {
   GLuint pingpong_fbo[2];
   GLuint pingpongBuffers[2];
 
-  bool use_postprocessing = false;
-  GLuint post_processing_program = 0;
+  // GLuint post_processing_program = 0;
   std::vector<float> trivial_vector = {
     -1, -1, 0,
     -1, 1, 0,

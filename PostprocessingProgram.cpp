@@ -1,20 +1,22 @@
-#include "BloomProgram.hpp"
+#include "PostprocessingProgram.hpp"
 
 #include "gl_compile_program.hpp"
 #include "gl_errors.hpp"
 #include <fstream>
 #include "data_path.hpp"
 
-// Scene::Drawable::Pipeline lit_color_texture_program_pipeline;
+Load< PostprocessingProgram > postprocessing_program(LoadTagEarly, []() -> PostprocessingProgram const * {
+	PostprocessingProgram *ret = new PostprocessingProgram();
+  return ret;
+});
 
-
-BloomProgram::BloomProgram() {
+PostprocessingProgram::PostprocessingProgram() {
   //Compile vertex and fragment shaders using the convenient 'gl_compile_program' helper function:
-  std::ifstream vertex_fs(data_path("bloom.vert"));
+  std::ifstream vertex_fs(data_path("postprocessing.vert"));
   std::string vert_content( 
       (std::istreambuf_iterator<char>(vertex_fs)), std::istreambuf_iterator<char>() );
 
-  std::ifstream fragment_fs(data_path("bloom.frag"));
+  std::ifstream fragment_fs(data_path("postprocessing.frag"));
   std::string frag_content( 
       (std::istreambuf_iterator<char>(fragment_fs)), std::istreambuf_iterator<char>() );
 
@@ -25,9 +27,6 @@ BloomProgram::BloomProgram() {
     //fragment shader:
     frag_content
   );
-  //As you can see above, adjacent strings in C/C++ are concatenated.
-  // this is very useful for writing long shader programs inline.
-
 /*
   //look up the locations of vertex attributes:
   Position_vec4 = glGetAttribLocation(program, "Position");
@@ -50,7 +49,7 @@ BloomProgram::BloomProgram() {
   */
 }
 
-BloomProgram::~BloomProgram() {
+PostprocessingProgram::~PostprocessingProgram() {
   glDeleteProgram(program);
   program = 0;
 }

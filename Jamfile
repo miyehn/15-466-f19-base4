@@ -164,8 +164,8 @@ GAME_NAMES =
 	load_opus
 	DrawSprites
 	ColorTextureProgram
-	LitColorTextureProgram
-  BloomProgram
+	FirstpassProgram
+  PostprocessingProgram
 	Sprite
 	MenuMode
 	main
@@ -219,6 +219,6 @@ MainFromObjects glider : $(GAME_NAMES:S=$(SUFOBJ)) $(COMMON_NAMES:S=$(SUFOBJ)) ;
 LOCATE_TARGET = sprites ; #put pack-sprites utility in the 'sprites' directory:
 MainFromObjects pack-sprites : $(PACK_SPRITES_NAMES:S=$(SUFOBJ)) load_save_png$(SUFOBJ) ;
 
-LOCATE_TARGET = scenes ; #put show-meshes and show-scene utilities in the 'scenes' directory:
-MainFromObjects show-meshes : $(SHOW_MESHES_NAMES:S=$(SUFOBJ)) $(COMMON_NAMES:S=$(SUFOBJ)) ;
-MainFromObjects show-scene : $(SHOW_SCENE_NAMES:S=$(SUFOBJ)) $(COMMON_NAMES:S=$(SUFOBJ)) ;
+# LOCATE_TARGET = scenes ; #put show-meshes and show-scene utilities in the 'scenes' directory:
+# MainFromObjects show-meshes : $(SHOW_MESHES_NAMES:S=$(SUFOBJ)) $(COMMON_NAMES:S=$(SUFOBJ)) ;
+# MainFromObjects show-scene : $(SHOW_SCENE_NAMES:S=$(SUFOBJ)) $(COMMON_NAMES:S=$(SUFOBJ)) ;

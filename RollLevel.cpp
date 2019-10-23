@@ -1,23 +1,33 @@
 #include "RollLevel.hpp"
 #include "data_path.hpp"
-#include "LitColorTextureProgram.hpp"
-#include "BloomProgram.hpp"
+#include "FirstpassProgram.hpp"
+#include "PostprocessingProgram.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 #include <unordered_set>
 #include <unordered_map>
 #include <iostream>
 
-//used for lookup later:
+// player:
 Mesh const *mesh_player = nullptr;
-Mesh const *mesh_floor = nullptr;
-Mesh const *mesh_blarge = nullptr;
-Mesh const *mesh_bsmall = nullptr;
+// floor tiles
+Mesh const *mesh_soil = nullptr;
+Mesh const *mesh_path = nullptr;
+Mesh const *mesh_unoccupied = nullptr;
+// plant (carrot)
+Mesh const *mesh_leaf1 = nullptr;
+Mesh const *mesh_leaf2 = nullptr;
+Mesh const *mesh_leaf3_root = nullptr;
+Mesh const *mesh_leaf3_leaf = nullptr;
+// trees
+Mesh const *mesh_tree1 = nullptr;
+Mesh const *mesh_tree2 = nullptr;
+Mesh const *mesh_tree_trunk = nullptr;
 
 //names of mesh-to-collider-mesh:
 std::unordered_map< Mesh const *, Mesh const * > mesh_to_collider;
 
-GLuint roll_meshes_for_lit_color_texture_program = 0;
+GLuint roll_meshes_for_firstpass_program = 0;
 
 //Load the meshes used in Sphere Roll levels:
 Load< MeshBuffer > roll_meshes(LoadTagDefault, []() -> MeshBuffer * {
@@ -28,18 +38,28 @@ Load< MeshBuffer > roll_meshes(LoadTagDefault, []() -> MeshBuffer * {
   }
 
   //Build vertex array object for the program we're using to shade these meshes:
-  roll_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
+  roll_meshes_for_firstpass_program = ret->make_vao_for_program(firstpass_program->program);
 
-  //key objects:
+  // player:
   mesh_player = &ret->lookup("player");
-  mesh_floor = &ret->lookup("floor");
-  mesh_blarge = &ret->lookup("blob_large");
-  mesh_bsmall = &ret->lookup("blob_small");
+  // floor tiles
+  mesh_soil = &ret->lookup("soil");
+  mesh_path = &ret->lookup("path");
+  mesh_unoccupied = &ret->lookup("unoccupied");
+  // plant (carrot)
+  mesh_leaf1 = &ret->lookup("leaf1");
+  mesh_leaf2 = &ret->lookup("leaf2");
+  mesh_leaf3_root = &ret->lookup("leaf3_root");
+  mesh_leaf3_leaf = &ret->lookup("leaf3_leaf");
+  // trees
+  mesh_tree1 = &ret->lookup("tree_1");
+  mesh_tree2 = &ret->lookup("tree_2");
+  mesh_tree_trunk = &ret->lookup("tree_trunk");
   
   mesh_to_collider.insert(std::make_pair(&ret->lookup("player"), &ret->lookup("player")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("floor"), &ret->lookup("floor")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("blob_large"), &ret->lookup("blob_large")));
-  mesh_to_collider.insert(std::make_pair(&ret->lookup("blob_small"), &ret->lookup("blob_small")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("soil"), &ret->lookup("soil")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("path"), &ret->lookup("path")));
+  mesh_to_collider.insert(std::make_pair(&ret->lookup("unoccupied"), &ret->lookup("unoccupied")));
 
   return ret;
 });
@@ -50,17 +70,11 @@ Load< RollLevel > game_scene(LoadTagLate, []() -> RollLevel* {
   return ret;
 });
 
-Load< BloomProgram > bloom_program(LoadTagEarly, []() -> BloomProgram const * {
-  BloomProgram *ret = new BloomProgram();
-  return ret;
-});
-
 //-------- RollLevel ---------
 
 RollLevel::RollLevel(std::string const &scene_file) {
 
   srand48(time(NULL));
-  post_processing_program = bloom_program->program;
 
   //Load scene (using Scene::load function), building proper associations as needed:
   load(scene_file, [this,&scene_file](Scene &, Transform *transform, std::string const &mesh_name){
@@ -72,8 +86,8 @@ RollLevel::RollLevel(std::string const &scene_file) {
     assert(custom_col);
     
     //set up drawable to draw mesh from buffer:
-    pipeline = lit_color_texture_program_pipeline;
-    pipeline.vao = roll_meshes_for_lit_color_texture_program;
+    pipeline = firstpass_program_pipeline;
+    pipeline.vao = roll_meshes_for_firstpass_program;
     pipeline.type = mesh->type;
     pipeline.start = mesh->start;
     pipeline.count = mesh->count;
@@ -97,8 +111,10 @@ RollLevel::RollLevel(std::string const &scene_file) {
       player.transform = transform;
     } else {
       auto f = mesh_to_collider.find(mesh);
-      assert (f != mesh_to_collider.end());
-      mesh_colliders.emplace_back(transform, *f->second, *roll_meshes);
+      if (f != mesh_to_collider.end()) {
+      // assert (f != mesh_to_collider.end());
+        mesh_colliders.emplace_back(transform, *f->second, *roll_meshes);
+      }
     }
   });
 

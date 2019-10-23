@@ -61,7 +61,7 @@ void main() {
     // edge detection
     float difX = length(firstpass - texture(FRAME, TexCoords + vec2(TEX_OFFSET.x, 0)));
     float difY = length(firstpass - texture(FRAME, TexCoords + vec2(0, TEX_OFFSET.y)));
-    if (difX > 0.05 || difY > 0.05) fragColor -= vec4(0.2, 0.15, 0.1, 0);
+    if (difX > 0.05 || difY > 0.05) fragColor = fragColor;// vec4(77/255, 46/255, 29/255, 1);// -= vec4(0.2, 0.15, 0.1, 0);
   } else {
     fragColor = vec4(1,0.5,1,1);
   }
